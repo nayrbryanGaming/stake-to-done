@@ -5,7 +5,8 @@ import {
   useDisconnect,
   useReadContract,
   useWriteContract,
-  useWaitForTransactionReceipt
+  useWaitForTransactionReceipt,
+  useBalance
 } from 'wagmi'
 import { injected } from 'wagmi/connectors'
 import { formatUnits, parseUnits } from 'viem'
@@ -23,7 +24,12 @@ import {
   Zap,
   Target,
   Search,
-  ExternalLink
+  ExternalLink,
+  ChevronRight,
+  LayoutDashboard,
+  Bell,
+  Settings,
+  LogOut
 } from 'lucide-react'
 
 import {
@@ -42,8 +48,9 @@ function App() {
 
   const [description, setDescription] = useState('')
   const [deadline, setDeadline] = useState('')
-  const [stakeAmountInput, setStakeAmountInput] = useState('10')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showNotification, setShowNotification] = useState(false)
+  const [notificationMsg, setNotificationMsg] = useState('')
 
   // Get user task IDs
   const { data: userTaskIds, refetch: refetchIds } = useReadContract({
@@ -63,11 +70,17 @@ function App() {
     query: { enabled: !!address }
   })
 
-  // Auto refetch on confirmation
+  const notify = (msg) => {
+    setNotificationMsg(msg)
+    setShowNotification(true)
+    setTimeout(() => setShowNotification(false), 5000)
+  }
+
   useEffect(() => {
     if (isConfirmed) {
       refetchIds()
       refetchBalance()
+      notify('Transaction Confirmed! Protocol Updated.')
     }
   }, [isConfirmed, refetchIds, refetchBalance])
 
@@ -95,160 +108,250 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen pb-20 overflow-x-hidden">
-      {/* Background Decor */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 blur-[120px] rounded-full"></div>
+    <div className="min-h-screen pb-20 overflow-x-hidden selection:bg-indigo-500/30">
+      {/* Premium Mesh Background */}
+      <div className="mesh-bg">
+        <div className="mesh-circle c-1"></div>
+        <div className="mesh-circle c-2"></div>
       </div>
 
+      {/* Toast Notification */}
+      {showNotification && (
+        <div className="fixed top-6 right-6 z-50 animate-in">
+          <div className="glass-card px-6 py-4 flex items-center gap-3 border-indigo-500/50 shadow-2xl shadow-indigo-500/20">
+            <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+              <Bell className="w-4 h-4 text-indigo-400" />
+            </div>
+            <p className="text-sm font-bold">{notificationMsg}</p>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 max-w-7xl mx-auto px-6">
-        {/* Header */}
-        <header className="flex justify-between items-center py-8 mb-12">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-              <Zap className="w-6 h-6 text-white" />
+        {/* Navigation Bar */}
+        <nav className="flex justify-between items-center py-8 mb-12 animate-in" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center gap-4 group cursor-pointer">
+            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[20px] flex items-center justify-center shadow-2xl shadow-indigo-500/30 group-hover:scale-110 transition-transform duration-500">
+              <Zap className="w-7 h-7 text-white fill-white/20" />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight leading-none">STAKE-TO-DONE</h1>
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500">Proof of Commitment</p>
+              <h1 className="text-2xl font-black tracking-tighter leading-none font-heading">STAKE-TO-DONE</h1>
+              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-400/80">Proof of Commitment</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {isConnected ? (
-              <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-2 pr-4 pl-4 h-12">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-mono text-gray-300">{address.slice(0, 6)}...{address.slice(-4)}</span>
-                <button onClick={() => disconnect()} className="text-xs font-bold text-gray-500 hover:text-white transition-colors ml-2 uppercase">Exit</button>
+              <div className="flex items-center gap-4">
+                <div className="hidden md:flex flex-col items-end">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Staking Wallet</span>
+                  <span className="text-sm font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">
+                    {address.slice(0, 6)}...{address.slice(-4)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => disconnect()}
+                  className="w-12 h-12 glass-card flex items-center justify-center text-gray-500 hover:text-red-400 hover:border-red-500/30 transition-all active:scale-90"
+                  title="Disconnect"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </div>
             ) : (
               <button
                 onClick={() => connect({ connector: injected() })}
-                className="h-12 bg-gradient-to-r from-indigo-600 to-purple-700 px-6 rounded-2xl font-bold flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-indigo-600/30"
+                className="btn-primary h-14 px-8 rounded-2xl font-black flex items-center gap-3 text-white group"
               >
-                <Wallet className="w-4 h-4" /> Connect Wallet
+                <Wallet className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Connect Protocol
               </button>
             )}
           </div>
-        </header>
+        </nav>
 
-        {/* Hero Section */}
-        <div className="grid lg:grid-cols-12 gap-8 mb-16">
-          <div className="lg:col-span-8">
-            <div className="glass-card p-10 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Target className="w-48 h-48" />
+        <main className="grid lg:grid-cols-12 gap-10">
+          {/* Left Column: Dashboard & Stats */}
+          <div className="lg:col-span-8 space-y-10">
+            {/* Hero Card */}
+            <div className="glass-card p-12 relative overflow-hidden animate-in" style={{ animationDelay: '0.2s' }}>
+              {/* Decorative elements */}
+              <div className="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px]"></div>
+              <div className="absolute top-12 right-12 opacity-5 scale-150 rotate-12">
+                <Target className="w-64 h-64" />
               </div>
-              <div className="flex items-center gap-3 mb-6 bg-indigo-500/10 w-fit px-4 py-1.5 rounded-full border border-indigo-500/20">
-                <Zap className="w-4 h-4 text-indigo-400" />
-                <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Protocol MVP v1.0</span>
-              </div>
-              <h2 className="text-5xl font-black mb-4 leading-[1.1]">Put Your Money Where Your <span className="text-indigo-400 text-glow">Goal</span> Is.</h2>
-              <p className="text-gray-400 text-lg max-w-xl mb-10">Use loss aversion to crush procrastination. Stake USDC on your tasks. Complete them to earn it back, fail and your funds are burned.</p>
 
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-3 bg-white/5 rounded-2xl px-6 py-4 border border-white/5">
-                  <Coins className="text-yellow-400" />
-                  <div>
-                    <div className="text-2xl font-black leading-none">{usdcBalance ? formatUnits(usdcBalance, 18) : '0.00'}</div>
-                    <div className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Available USDC</div>
-                  </div>
+              <div className="relative z-10 max-w-2xl">
+                <div className="flex items-center gap-3 mb-8 bg-white/5 w-fit px-5 py-2 rounded-full border border-white/10 backdrop-blur-md">
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Protocol Version 1.0.4 - Mainnet Ready</span>
                 </div>
-                <button onClick={handleMint} className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all flex items-center gap-2">
-                  <PlusCircle className="w-4 h-4" /> Mint Test Tokens
-                </button>
+
+                <h2 className="text-6xl font-black mb-6 leading-[1.05] font-heading tracking-tight">
+                  Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 text-glow">Time</span>,<br />
+                  Stake Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 text-glow">Goal</span>.
+                </h2>
+
+                <p className="text-gray-400 text-xl leading-relaxed mb-12 font-medium">
+                  The ultimate anti-procrastination protocol. Lock USDC on your commitments. Finish on time to reclaim your assets, fail and embrace the burn.
+                </p>
+
+                <div className="flex flex-wrap gap-6">
+                  <div className="glass-card bg-indigo-500/5 px-8 py-5 border-indigo-500/20 group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                        <Coins className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-3xl font-black tabular-nums">
+                          {usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
+                        </div>
+                        <div className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Available USDC</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleMint}
+                    className="btn-glass h-[74px] px-8 rounded-2xl font-bold flex items-center gap-3 hover:border-indigo-500/40 text-gray-300 hover:text-white transition-all"
+                  >
+                    <PlusCircle className="w-5 h-5 text-indigo-400" />
+                    <span>Get Test Funds</span>
+                  </button>
+                </div>
               </div>
+            </div>
+
+            {/* Task List Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-end gap-6 animate-in" style={{ animationDelay: '0.3s' }}>
+              <div>
+                <h3 className="text-4xl font-black font-heading tracking-tight mb-2 flex items-center gap-4">
+                  Commitments
+                  <span className="text-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 w-10 h-10 flex items-center justify-center rounded-xl font-black italic">
+                    {userTaskIds?.length || 0}
+                  </span>
+                </h3>
+                <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Live Protocol Tasks</p>
+              </div>
+
+              <div className="relative w-full sm:w-80 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-indigo-400 transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Filter by description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-sm focus:border-indigo-500/50 focus:bg-white/[0.08] outline-none transition-all placeholder:text-gray-700 font-bold"
+                />
+              </div>
+            </div>
+
+            {/* Task List Grid */}
+            <div className="animate-in space-y-6" style={{ animationDelay: '0.4s' }}>
+              {!userTaskIds || userTaskIds.length === 0 ? (
+                <div className="glass-card p-24 text-center border-dashed border-2 bg-transparent">
+                  <div className="w-24 h-24 bg-white/5 border border-white/5 rounded-[32px] flex items-center justify-center mx-auto mb-8 rotate-12 group hover:rotate-0 transition-transform duration-500">
+                    <Clock className="w-12 h-12 text-gray-700 group-hover:text-indigo-500 transition-colors" />
+                  </div>
+                  <h4 className="text-2xl font-black mb-3 text-gray-400 uppercase tracking-tight">System Idle</h4>
+                  <p className="text-gray-600 max-w-xs mx-auto font-bold">No commitments found on-chain. Deploy your first task to begin protocol enforcement.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-6">
+                  {userTaskIds.map(id => (
+                    <TaskItem
+                      key={id.toString()}
+                      id={id}
+                      refetchAll={() => { refetchIds(); refetchBalance(); }}
+                      searchQuery={searchQuery}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="lg:col-span-4">
-            <div className="glass-card p-8 h-full bg-indigo-600/5 border-indigo-500/20">
-              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                <Zap className="text-indigo-500" /> Create Goal
-              </h3>
-              <form onSubmit={handleCreateTask} className="space-y-5">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Description</label>
-                  <input
-                    type="text"
-                    required
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Finish frontend build..."
-                    className="w-full h-14 bg-black/40 border border-white/10 rounded-2xl px-5 text-white placeholder:text-gray-700/50 focus:border-indigo-500/50 focus:ring-0 outline-none transition-all"
-                  />
+          {/* Right Column: Creation Interface */}
+          <div className="lg:col-span-4 space-y-8 sticky top-10 h-fit">
+            <div className="glass-card p-10 bg-indigo-600/[0.03] border-indigo-500/20 animate-in" style={{ animationDelay: '0.5s' }}>
+              <div className="flex items-center justify-between mb-10">
+                <h3 className="text-2xl font-black flex items-center gap-3 font-heading">
+                  <Zap className="text-indigo-500 fill-indigo-500/20" /> New Goal
+                </h3>
+                <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center">
+                  <LayoutDashboard className="w-4 h-4 text-gray-500" />
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Deadline</label>
+              </div>
+
+              <form onSubmit={handleCreateTask} className="space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-2">Commitment Description</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="e.g., SHIP MVP PROTOCOL"
+                      className="w-full h-16 bg-black/40 border border-white/10 rounded-2xl px-6 text-white font-bold placeholder:text-gray-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-2">Execution Deadline</label>
                   <input
                     type="datetime-local"
                     required
                     value={deadline}
                     onChange={(e) => setDeadline(e.target.value)}
-                    className="w-full h-14 bg-black/40 border border-white/10 rounded-2xl px-5 text-white focus:border-indigo-500/50 focus:ring-0 outline-none transition-all"
+                    className="w-full h-16 bg-black/40 border border-white/10 rounded-2xl px-6 text-white font-bold focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all [color-scheme:dark]"
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={!isConnected || isTxPending}
-                  className="w-full h-14 btn-primary text-white font-bold rounded-2xl flex items-center justify-center gap-2 group disabled:opacity-50"
-                >
-                  Create Task <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-                {isTxPending && <p className="text-center text-xs text-indigo-400 animate-pulse font-bold">Awaiting Transaction...</p>}
+
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={!isConnected || isTxPending}
+                    className="w-full h-20 btn-primary text-white font-black rounded-[24px] text-lg flex items-center justify-center gap-3 group disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <span>Initiate Commitment</span>
+                    <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
+                  </button>
+                  {isTxPending && (
+                    <div className="mt-4 flex items-center justify-center gap-2 text-indigo-400 animate-pulse">
+                      <Zap className="w-4 h-4" />
+                      <span className="text-xs font-black uppercase tracking-widest">Awaiting Block...</span>
+                    </div>
+                  )}
+                </div>
               </form>
             </div>
-          </div>
-        </div>
 
-        {/* Task List Section */}
-        <section>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <h2 className="text-3xl font-black flex items-center gap-4">
-              Active Commitments
-              <span className="text-sm bg-white/5 border border-white/10 h-8 px-4 flex items-center justify-center rounded-full font-bold text-gray-500">
-                {userTaskIds?.length || 0}
-              </span>
-            </h2>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-              <input
-                type="text"
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 text-sm focus:border-indigo-500/50 outline-none transition-all"
-              />
+            {/* Protocol Tips */}
+            <div className="glass-card p-8 bg-transparent border-dashed animate-in" style={{ animationDelay: '0.6s' }}>
+              <h4 className="text-sm font-black uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-indigo-500" /> Protocol Rules
+              </h4>
+              <ul className="space-y-4">
+                {[
+                  { icon: Trophy, text: "Stake to prove your resolve." },
+                  { icon: ShieldCheck, text: "Finish on time to get paid back." },
+                  { icon: Flame, text: "Miss the deadline? Stake is burned." }
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-xs font-bold text-gray-600">
+                    <item.icon className="w-4 h-4 text-gray-700" />
+                    <span>{item.text}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          {!userTaskIds || userTaskIds.length === 0 ? (
-            <div className="glass-card p-20 text-center border-dashed border-2">
-              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Clock className="w-10 h-10 text-gray-600" />
-              </div>
-              <h4 className="text-xl font-bold mb-2 text-gray-300">No active goals yet</h4>
-              <p className="text-gray-500 max-w-sm mx-auto">The best time to start was yesterday. The second best time is now. Create your first task to the right.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {userTaskIds.map(id => (
-                <TaskItem
-                  key={id.toString()}
-                  id={id}
-                  refetchAll={() => { refetchIds(); refetchBalance(); }}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        </main>
       </div>
     </div>
   )
 }
 
-function TaskItem({ id, refetchAll }) {
+function TaskItem({ id, refetchAll, searchQuery }) {
   const { address } = useAccount()
   const { writeContract, data: hash, isPending: isTxPending } = useWriteContract()
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
@@ -280,6 +383,10 @@ function TaskItem({ id, refetchAll }) {
   if (!task) return null
 
   const [taskId, user, description, amount, deadline, completed, claimed] = task
+
+  // Search Filter
+  if (searchQuery && !description.toLowerCase().includes(searchQuery.toLowerCase())) return null
+
   const isExpired = Number(deadline) < Date.now() / 1000
   const isStaked = amount > 0n
   const needsApproval = (allowance || 0n) < parseUnits(stakeAmount, 18)
@@ -291,7 +398,7 @@ function TaskItem({ id, refetchAll }) {
           address: MOCK_USDC_ADDRESS,
           abi: MOCK_USDC_ABI,
           functionName: 'approve',
-          args: [STAKE_TO_DONE_ADDRESS, parseUnits(stakeAmount, 18)], // Large amount or exactly
+          args: [STAKE_TO_DONE_ADDRESS, parseUnits(stakeAmount, 18)],
         })
       } else {
         writeContract({
@@ -321,60 +428,100 @@ function TaskItem({ id, refetchAll }) {
   }
 
   return (
-    <div className={`glass-card p-4 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6 transition-all border-l-4 ${completed ? 'border-l-green-500 opacity-60' : claimed ? 'border-l-red-500' : isStaked ? 'border-l-yellow-500' : 'border-l-indigo-500'}`}>
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-3 mb-3">
-          <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-white/5 border border-white/10 rounded-md text-gray-400">Task #{taskId.toString()}</span>
+    <div className={`glass-card p-8 flex flex-col md:flex-row items-stretch md:items-center gap-8 group transition-all duration-500 overflow-hidden relative ${completed ? 'border-l-4 border-l-emerald-500 bg-emerald-500/[0.02]' :
+        claimed ? 'border-l-4 border-l-red-500 bg-red-500/[0.02]' :
+          isStaked ? 'border-l-4 border-l-amber-500 bg-amber-500/[0.02]' :
+            'border-l-4 border-l-indigo-500 bg-indigo-500/[0.02]'
+      }`}>
+      {/* Visual Indicator Background */}
+      <div className={`absolute top-0 right-0 w-32 h-full opacity-[0.03] transition-opacity group-hover:opacity-[0.07] ${completed ? 'bg-emerald-500' : claimed ? 'bg-red-500' : isStaked ? 'bg-amber-500' : 'bg-indigo-500'
+        }`}></div>
+
+      <div className="flex-1 relative z-10">
+        <div className="flex flex-wrap items-center gap-3 mb-5">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-gray-500">Task Protocol ID #{taskId.toString()}</span>
+
           {completed ? (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-green-500/10 border border-green-500/20 rounded-md text-green-400 flex items-center gap-1.5"><CheckCircle className="w-3 h-3" /> Mission Success</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/10">
+              <CheckCircle className="w-3.5 h-3.5" /> Mission Verified
+            </div>
           ) : claimed ? (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-red-500/10 border border-red-500/20 rounded-md text-red-500 flex items-center gap-1.5"><Flame className="w-3 h-3" /> Funds Burned</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-[10px] font-black uppercase tracking-widest">
+              <Flame className="w-3.5 h-3.5" /> Protocol Burned
+            </div>
           ) : isStaked ? (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-md text-yellow-400 flex items-center gap-1.5"><ShieldCheck className="w-3 h-3" /> Skin in the game</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/10 scale-105">
+              <ShieldCheck className="w-3.5 h-3.5 animate-pulse" /> Active Resolve
+            </div>
           ) : (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-md text-indigo-400 flex items-center gap-1.5"><Zap className="w-3 h-3" /> Uncommitted</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-400 text-[10px] font-black uppercase tracking-widest">
+              <Zap className="w-3.5 h-3.5" /> Pending Stake
+            </div>
           )}
-          {isExpired && !completed && !claimed && <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 bg-red-600/10 border border-red-600/20 rounded-md text-red-600">Expired</span>}
+
+          {isExpired && !completed && !claimed && (
+            <span className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-600/30 rounded-lg text-red-500 text-[10px] font-black uppercase tracking-widest animate-bounce">
+              <Bell className="w-3.5 h-3.5" /> Defeated
+            </span>
+          )}
         </div>
-        <h3 className="text-2xl font-black text-white truncate mb-2">{description}</h3>
-        <div className="flex flex-wrap items-center gap-6 text-xs font-bold text-gray-500">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-indigo-500/50" />
-            <span>DL: {new Date(Number(deadline) * 1000).toLocaleString()}</span>
+
+        <h3 className="text-3xl font-black text-white mb-4 tracking-tight group-hover:text-indigo-400 transition-colors uppercase font-heading">{description}</h3>
+
+        <div className="flex flex-wrap items-center gap-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/5 border border-white/5">
+              <Clock className="w-4 h-4 text-indigo-500" />
+            </div>
+            <div>
+              <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Termination Date</div>
+              <div className="text-xs font-bold text-gray-400">{new Date(Number(deadline) * 1000).toLocaleString()}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Coins className="w-4 h-4 text-yellow-500/50" />
-            <span className="text-gray-300">{isStaked ? formatUnits(amount, 18) : stakeAmount} <span className="text-[10px] uppercase font-bold text-gray-600">USDC Stake</span></span>
+
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/5 border border-white/5">
+              <Coins className="w-4 h-4 text-amber-500" />
+            </div>
+            <div>
+              <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Asset Commitment</div>
+              <div className="text-xs font-bold text-gray-200">
+                {isStaked ? formatUnits(amount, 18) : stakeAmount} <span className="text-[10px] font-black text-gray-600 ml-1">USDC</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 w-full md:w-auto">
+      <div className="flex items-stretch md:items-center gap-4 w-full md:w-auto relative z-10">
         {!completed && !claimed && (
           <>
             {isStaked ? (
               <button
                 onClick={handleAction}
                 disabled={isTxPending || isExpired}
-                className={`h-14 px-8 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all ${isTxPending ? 'bg-white/5 opacity-50' : 'bg-green-600 hover:bg-green-500 hover:scale-[1.02] shadow-xl shadow-green-600/20 underline-offset-4'}`}
+                className="h-20 px-10 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xl shadow-emerald-600/30 disabled:opacity-30 disabled:grayscale group/btn"
               >
-                {isTxPending ? 'Confirming...' : 'I Finished This'} <Trophy className="w-4 h-4" />
+                {isTxPending ? 'Verifying...' : 'Settle Proof'}
+                <Trophy className="w-5 h-5 group-hover/btn:scale-125 transition-transform" />
               </button>
             ) : (
-              <div className="flex items-center bg-black/40 rounded-2xl border border-white/10 p-1">
-                <input
-                  type="number"
-                  value={stakeAmount}
-                  onChange={(e) => setStakeAmount(e.target.value)}
-                  className="w-20 bg-transparent text-center font-black focus:outline-none transition-all"
-                />
-                <button
-                  onClick={handleAction}
-                  disabled={isTxPending}
-                  className={`h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${isTxPending ? 'bg-white/5 opacity-50' : 'bg-indigo-600 hover:bg-indigo-500'}`}
-                >
-                  {needsApproval ? 'Approve USDC' : 'Stake USDC'}
-                </button>
+              <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                <div className="flex items-center glass-card bg-black/40 border-white/10 p-1 rounded-2xl">
+                  <input
+                    type="number"
+                    value={stakeAmount}
+                    onChange={(e) => setStakeAmount(e.target.value)}
+                    className="w-24 bg-transparent text-center font-black focus:outline-none transition-all text-indigo-400"
+                  />
+                  <button
+                    onClick={handleAction}
+                    disabled={isTxPending}
+                    className="h-14 px-8 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20"
+                  >
+                    {isTxPending ? '...' : needsApproval ? 'Authorize' : 'Lock Stake'}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -382,23 +529,30 @@ function TaskItem({ id, refetchAll }) {
               <button
                 onClick={handleClaim}
                 disabled={isTxPending}
-                className="h-14 w-14 flex items-center justify-center rounded-2xl bg-red-600/10 border border-red-600/20 text-red-600 hover:bg-red-600 hover:text-white transition-all"
+                className="h-20 w-20 flex items-center justify-center rounded-2xl glass-card bg-red-600/10 border-red-600/20 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-xl hover:scale-105 active:scale-95 group/claim"
+                title="Protocol Cleanup: Burn Stake"
               >
-                <Flame className="w-5 h-5" />
+                <Flame className="w-8 h-8 group-hover/claim:animate-pulse" />
               </button>
             )}
           </>
         )}
 
         {completed && (
-          <div className="h-14 px-8 rounded-2xl border border-green-500/20 bg-green-500/5 text-green-500 font-black text-sm flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" /> SUCCESS
+          <div className="h-20 px-10 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-black text-sm flex items-center gap-3 animate-in">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 fill-emerald-500/20" />
+            </div>
+            PROVED
           </div>
         )}
 
         {claimed && (
-          <div className="h-14 px-8 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-500 font-black text-sm flex items-center gap-2">
-            <Flame className="w-5 h-5" /> PENALIZED
+          <div className="h-20 px-10 rounded-2xl border border-red-500/20 bg-red-500/5 text-red-400 font-black text-sm flex items-center gap-3 animate-in">
+            <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+              <Flame className="w-5 h-5 fill-red-500/20" />
+            </div>
+            BURNED
           </div>
         )}
       </div>
