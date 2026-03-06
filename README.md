@@ -111,23 +111,28 @@ Ethereum compatibility
 
 # Tech Stack
 
-**Smart Contracts**
-- Solidity
-- Hardhat
+Smart Contracts
 
-**Frontend**
-- React + Vite
-- Tailwind CSS / Premium CSS Modules
+Solidity  
+Hardhat
 
-**Wallet Integration**
-- wagmi
-- viem
+Frontend
 
-**Wallet**
-- MetaMask
+React  
+Vite
 
-**Token**
-- USDC (ERC20)
+Wallet Integration
+
+wagmi  
+viem
+
+Wallet
+
+MetaMask
+
+Token
+
+USDC (ERC20)
 
 ---
 
@@ -150,17 +155,22 @@ Base Network
 # Repository Structure
 
 ```
-stake-to-done/
-├── contracts/
-│   └── StakeToDone.sol
-├── scripts/
-│   └── deploy.js
-├── tests/
-│   └── stakeToDone.test.js
-├── frontend/
-│   ├── src/
-│   └── public/
-└── README.md
+stake-to-done
+
+contracts/
+StakeToDone.sol
+
+scripts/
+deploy.js
+
+tests/
+stakeToDone.test.js
+
+frontend/
+src/
+components/
+
+README.md
 ```
 
 ---
@@ -170,36 +180,38 @@ stake-to-done/
 The core contract manages task commitments.
 
 Task structure:
+
 ```solidity
 struct Task {
-    address user;
-    string description;
-    uint256 stakeAmount;
-    uint256 deadline;
-    bool completed;
+address user;
+string description;
+uint256 stakeAmount;
+uint256 deadline;
+bool completed;
 }
 ```
 
 Core functions:
-- `createTask()`
-- `stakeTask()`
-- `completeTask()`
-- `claimExpiredTask()`
+
+createTask()  
+stakeTask()  
+completeTask()  
+claimExpiredTask()
 
 ---
 
 # Installation
 
-1. Clone the repository:
+Clone the repository.
+
 ```bash
 git clone https://github.com/nayrbryanGaming/stake-to-done.git
 cd stake-to-done
 ```
 
-2. Install dependencies:
+Install dependencies.
+
 ```bash
-npm install
-cd frontend
 npm install
 ```
 
@@ -207,57 +219,151 @@ npm install
 
 # Running the Frontend
 
-Navigate to the frontend folder and start the dev server:
+Navigate to frontend folder.
+
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
-Local server will start at [http://localhost:5173](http://localhost:5173).
+
+Local server will start.
+
+[http://localhost:5173](http://localhost:5173)
 
 ---
 
 # Deploy Smart Contract
 
-You can deploy using Hardhat:
-```bash
-npx hardhat run scripts/deploy.js --network base_sepolia
+You can deploy using Hardhat or Remix.
+
+Recommended for beginners: Remix.
+
+Open Remix:
+https://remix.ethereum.org
+
+Create file:
+StakeToDone.sol
+
+Compile contract.
+
+Deploy using:
+Injected Provider
+
+Connect MetaMask.
+
+Ensure network:
+Base Sepolia Testnet
+
+Deploy contract.
+
+Copy the contract address.
+
+---
+
+# Connect Frontend to Contract
+
+Update frontend configuration.
+
+```javascript
+const contractAddress = "YOUR_CONTRACT_ADDRESS"
 ```
 
-Or use Remix:
-1. Open [Remix](https://remix.ethereum.org).
-2. Create `StakeToDone.sol`.
-3. Compile and deploy using **Injected Provider (MetaMask)** on **Base Sepolia Testnet**.
+Add ABI from compiled contract.
+
+Frontend will interact with contract through wallet.
+
+---
+
+# Deploy Frontend
+
+Frontend can be deployed using Vercel.
+
+Steps:
+
+Push repo to GitHub.
+
+Login to Vercel.
+
+Import repository.
+
+Click deploy.
+
+After deployment your app will be live.
+
+Example:
+[https://staketodone.vercel.app](https://staketodone.vercel.app)
 
 ---
 
 # Security Considerations
 
-Smart contracts should be audited before production. Key considerations:
-- Reentrancy protection (implemented).
-- Token approval handling.
-- Deadline validation.
+Smart contracts should be audited before production.
+
+Potential risks include:
+
+Reentrancy attacks  
+Token approval issues  
+Deadline manipulation
+
+Security reviews are recommended before mainnet deployment.
 
 ---
 
 # Roadmap
 
-**Phase 1**
-- MVP smart contract
-- Basic task staking
-- Premium Frontend dashboard (In Progress)
+Phase 1
 
-**Phase 2**
-- Leaderboard
-- Task history
-- User profiles
+MVP smart contract  
+Basic task staking  
+Frontend dashboard
 
-**Phase 3**
-- Mobile app
-- Social accountability features
-- DAO governance
+Phase 2
+
+Leaderboard  
+Task history  
+User profiles
+
+Phase 3
+
+Mobile app  
+Social accountability features  
+DAO governance
+
+---
+
+# Future Features
+
+Group challenges  
+Habit streak staking  
+Productivity DAOs  
+Integration with AI productivity tools
+
+---
+
+# Open Source
+
+StakeToDone is an open-source project.
+
+We welcome contributions.
+
+Developers can contribute by:
+
+Improving UI  
+Adding smart contract features  
+Improving security  
+Adding analytics
 
 ---
 
 # License
 
 MIT License
+
+---
+
+# Acknowledgements
+
+Built for experimentation in behavioral economics and Web3 applications.
+
+Powered by Base.
