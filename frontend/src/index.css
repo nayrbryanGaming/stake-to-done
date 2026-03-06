@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #5415C0;
+  --secondary: #000;
+  --accent: #FFD700;
+  --glass: rgba(255, 255, 255, 0.05);
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+  color: #fff;
+  min-height: 100vh;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
