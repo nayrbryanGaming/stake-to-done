@@ -1,369 +1,123 @@
 # StakeToDone Protocol
 
-StakeToDone is an onchain productivity commitment protocol built on Base.
+StakeToDone is an ultra-premium, onchain productivity commitment protocol built on the **Base Network**.
 
-It allows users to stake crypto to commit to completing tasks.  
+It allows users to stake crypto (USDC) to commit to completing tasks.  
 If the task is completed before the deadline, the stake is returned.  
-If the task fails, the stake is burned or redistributed.
+If the task fails, the stake is burned or sent to a treasury.
 
-The protocol leverages behavioral economics and smart contracts to create stronger accountability than traditional productivity apps.
-
----
-
-# Problem
-
-Millions of people struggle with procrastination.
-
-Traditional productivity tools rely only on motivation and reminders.
-
-They cannot enforce real commitment.
-
-In behavioral psychology, **loss aversion** shows that people are more motivated to avoid losing money than to gain rewards.
-
-StakeToDone introduces financial accountability into productivity.
+The protocol leverages **Loss Aversion** from behavioral economics to create the strongest accountability mechanism in Web3.
 
 ---
 
-# Solution
+## 🏗 System Architecture
 
-StakeToDone transforms tasks into onchain commitments.
-
-Users stake crypto when creating a task.
-
-If the task is completed before the deadline:
-
-User receives their funds back.
-
-If the task is not completed:
-
-Funds are automatically burned or redistributed.
-
-This creates a powerful incentive to complete commitments.
-
----
-
-# How It Works
-
-User flow:
-
-1. Connect wallet
-2. Create task
-3. Stake tokens
-4. Wait until deadline
-5. Mark task completed
-
-Outcome:
-
-Completed → stake returned  
-Failed → stake burned or sent to treasury
-
----
-
-# Example
-
-User creates task:
-
-Finish coding MVP
-
-Stake:
-
-1 USDC
-
-Deadline:
-
-24 hours
-
-If completed:
-
-User gets back 1 USDC.
-
-If failed:
-
-Stake is burned.
-
----
-
-# Why Blockchain
-
-Traditional apps cannot safely hold user funds without trust.
-
-Smart contracts allow:
-
-Trustless escrow  
-Automatic execution  
-Transparent rules
-
-This makes financial commitment mechanisms possible.
-
----
-
-# Built On
-
-Base Network
-
-StakeToDone is deployed on Base because of:
-
-Low transaction fees  
-Fast confirmations  
-Ethereum compatibility
-
----
-
-# Tech Stack
-
-Smart Contracts
-
-Solidity  
-Hardhat
-
-Frontend
-
-React  
-Vite
-
-Wallet Integration
-
-wagmi  
-viem
-
-Wallet
-
-MetaMask
-
-Token
-
-USDC (ERC20)
-
----
-
-# Project Architecture
-
-```
-User
-↓
-Frontend (React)
-↓
-Wallet Connection
-↓
-Smart Contract
-↓
-Base Network
+```ascii
+                                  +-----------------------+
+                                  |      User Wallet      |
+                                  |   (MetaMask / Base)   |
+                                  +-----------+-----------+
+                                              |
+                                              | (Wagmi / Viem)
+                                              v
++--------------------------+      +-----------+-----------+
+|    Premium Frontend      | <----+    React + Vite       |
+|  (Glassmorphism UI)      |      |   (Wagmi Hooks)       |
++--------------------------+      +-----------+-----------+
+                                              |
+                                              | (JSON-RPC)
+                                              v
++---------------------------------------------+-----------+
+|               Base Blockchain (Sepolia)                 |
+|                                                         |
+|  +---------------------+        +--------------------+  |
+|  |   StakeToDone.sol   | <----> |   MockUSDC (ERC20) |  |
+|  | (Protocol Logic)    |        | (Staking Asset)    |  |
+|  +---------------------+        +--------------------+  |
++---------------------------------------------------------+
 ```
 
 ---
 
-# Repository Structure
+## ⚡ Core Concept
 
-```
-stake-to-done
+### The Problem
+Procrastination is often caused by a lack of immediate consequences. Traditional productivity apps rely on motivation—which is fleeting.
 
-contracts/
-StakeToDone.sol
-
-scripts/
-deploy.js
-
-tests/
-stakeToDone.test.js
-
-frontend/
-src/
-components/
-
-README.md
-```
+### The Solution
+StakeToDone transforms tasks into financial commitments. By putting "skin in the game," users trigger **Loss Aversion**, making the cost of failure tangible and immediate.
 
 ---
 
-# Smart Contract Overview
+## 🚀 Features
 
-The core contract manages task commitments.
-
-Task structure:
-
-```solidity
-struct Task {
-address user;
-string description;
-uint256 stakeAmount;
-uint256 deadline;
-bool completed;
-}
-```
-
-Core functions:
-
-createTask()  
-stakeTask()  
-completeTask()  
-claimExpiredTask()
+- **Onchain Commitments**: Every task is recorded on the Base blockchain.
+- **USDC Staking**: Users lock a specific amount of USDC to prove resolve.
+- **Deadline Enforcer**: Smart contracts handle the expiration and penalty logic automatically.
+- **Ultra-Premium UI**: Glassmorphic design system with vibrant mesh gradients for a "Wow" experience.
+- **Protocol Transparency**: All stakes and burns are visible on-chain.
 
 ---
 
-# Installation
+## 🛠 Tech Stack
 
-Clone the repository.
-
-```bash
-git clone https://github.com/nayrbryanGaming/stake-to-done.git
-cd stake-to-done
-```
-
-Install dependencies.
-
-```bash
-npm install
-```
+- **L2 Blockchain**: [Base](https://base.org) (Sepolia Testnet)
+- **Smart Contracts**: Solidity ^0.8.20 (Hardhat)
+- **Frontend**: React + Vite + Tailwind CSS
+- **Interactions**: Wagmi + Viem
+- **Provider**: Injected Wallet (MetaMask)
 
 ---
 
-# Running the Frontend
+## 🔐 Security & Bug Detection
 
-Navigate to frontend folder.
+During the "Perfection" phase, a self-audit was conducted:
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Local server will start.
-
-[http://localhost:5173](http://localhost:5173)
+1. **Re-entrancy Protection**: Implemented `ReentrancyGuard` on all state-changing functions.
+2. **Deadline Validation**: Strict validation ensures tasks cannot be completed after the deadline.
+3. **Escrow Safety**: Funds are held in the contract and only released upon valid proof of completion or expiration.
+4. **Approval Check**: Frontend ensures USDC allowance is handled before staking.
+5. **Ownership**: Treasury management is restricted to the contract owner.
 
 ---
 
-# Deploy Smart Contract
+## 📈 Roadmap & Improvements
 
-You can deploy using Hardhat or Remix.
+### Phase 1 (MVP - Current)
+- [x] Basic Staking & Completion
+- [x] Premium UI/UX Overhaul
+- [x] Base Sepolia Deployment
 
-Recommended for beginners: Remix.
+### Phase 2 (Growth)
+- [ ] **Leaderboards**: Track the most disciplined users.
+- [ ] **Chainlink Automation**: Automate the `claimExpiredTask` function for hands-off burning.
+- [ ] **Social Slashing**: Allow friends to verify tasks (Proof of Peer).
 
-Open Remix:
-https://remix.ethereum.org
-
-Create file:
-StakeToDone.sol
-
-Compile contract.
-
-Deploy using:
-Injected Provider
-
-Connect MetaMask.
-
-Ensure network:
-Base Sepolia Testnet
-
-Deploy contract.
-
-Copy the contract address.
+### Phase 3 (Ecosystem)
+- [ ] **Governance Token**: Participate in protocol parameters.
+- [ ] **Mobile App**: Native iOS/Android experience.
+- [ ] **API Integration**: Connect with Jira/Github to auto-verify tasks.
 
 ---
 
-# Connect Frontend to Contract
+## 🚀 Getting Started
 
-Update frontend configuration.
-
-```javascript
-const contractAddress = "YOUR_CONTRACT_ADDRESS"
-```
-
-Add ABI from compiled contract.
-
-Frontend will interact with contract through wallet.
-
----
-
-# Deploy Frontend
-
-Frontend can be deployed using Vercel.
-
-Steps:
-
-Push repo to GitHub.
-
-Login to Vercel.
-
-Import repository.
-
-Click deploy.
-
-After deployment your app will be live.
-
-Example:
-[https://staketodone.vercel.app](https://staketodone.vercel.app)
+1. **Clone & Install**:
+   ```bash
+   git clone https://github.com/nayrbryanGaming/stake-to-done.git
+   npm install
+   ```
+2. **Setup Frontend**:
+   ```bash
+   cd frontend && npm install
+   npm run dev
+   ```
+3. **Deploy (Optional)**:
+   ```bash
+   npx hardhat run scripts/deploy.js --network base_sepolia
+   ```
 
 ---
 
-# Security Considerations
-
-Smart contracts should be audited before production.
-
-Potential risks include:
-
-Reentrancy attacks  
-Token approval issues  
-Deadline manipulation
-
-Security reviews are recommended before mainnet deployment.
-
----
-
-# Roadmap
-
-Phase 1
-
-MVP smart contract  
-Basic task staking  
-Frontend dashboard
-
-Phase 2
-
-Leaderboard  
-Task history  
-User profiles
-
-Phase 3
-
-Mobile app  
-Social accountability features  
-DAO governance
-
----
-
-# Future Features
-
-Group challenges  
-Habit streak staking  
-Productivity DAOs  
-Integration with AI productivity tools
-
----
-
-# Open Source
-
-StakeToDone is an open-source project.
-
-We welcome contributions.
-
-Developers can contribute by:
-
-Improving UI  
-Adding smart contract features  
-Improving security  
-Adding analytics
-
----
-
-# License
-
-MIT License
-
----
-
-# Acknowledgements
-
-Built for experimentation in behavioral economics and Web3 applications.
-
-Powered by Base.
+## 📜 License
+MIT License. Built with resolve on Base.
