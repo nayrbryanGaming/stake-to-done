@@ -90,7 +90,7 @@ function App() {
       address: MOCK_USDC_ADDRESS,
       abi: MOCK_USDC_ABI,
       functionName: 'mint',
-      args: [address, parseUnits('1000', 6)],
+      args: [address, parseUnits('1000', 18)],
     })
   }
 
@@ -151,7 +151,7 @@ function App() {
                 <div className="flex items-center gap-3 bg-white/5 rounded-2xl px-6 py-4 border border-white/5">
                   <Coins className="text-yellow-400" />
                   <div>
-                    <div className="text-2xl font-black leading-none">{usdcBalance ? formatUnits(usdcBalance, 6) : '0.00'}</div>
+                    <div className="text-2xl font-black leading-none">{usdcBalance ? formatUnits(usdcBalance, 18) : '0.00'}</div>
                     <div className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Available USDC</div>
                   </div>
                 </div>
@@ -282,7 +282,7 @@ function TaskItem({ id, refetchAll }) {
   const [taskId, user, description, amount, deadline, completed, claimed] = task
   const isExpired = Number(deadline) < Date.now() / 1000
   const isStaked = amount > 0n
-  const needsApproval = (allowance || 0n) < parseUnits(stakeAmount, 6)
+  const needsApproval = (allowance || 0n) < parseUnits(stakeAmount, 18)
 
   const handleAction = () => {
     if (!isStaked) {
@@ -298,7 +298,7 @@ function TaskItem({ id, refetchAll }) {
           address: STAKE_TO_DONE_ADDRESS,
           abi: STAKE_TO_DONE_ABI,
           functionName: 'stakeTask',
-          args: [BigInt(taskId), parseUnits(stakeAmount, 6)],
+          args: [BigInt(taskId), parseUnits(stakeAmount, 18)],
         })
       }
     } else if (!completed && !claimed) {
@@ -344,7 +344,7 @@ function TaskItem({ id, refetchAll }) {
           </div>
           <div className="flex items-center gap-2">
             <Coins className="w-4 h-4 text-yellow-500/50" />
-            <span className="text-gray-300">{isStaked ? formatUnits(amount, 6) : stakeAmount} <span className="text-[10px] uppercase font-bold text-gray-600">USDC Stake</span></span>
+            <span className="text-gray-300">{isStaked ? formatUnits(amount, 18) : stakeAmount} <span className="text-[10px] uppercase font-bold text-gray-600">USDC Stake</span></span>
           </div>
         </div>
       </div>
