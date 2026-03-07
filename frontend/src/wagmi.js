@@ -11,6 +11,8 @@ export const config = createConfig({
         [baseSepolia.id]: fallback([
             http('https://sepolia.base.org'),
             http('https://base-sepolia-rpc.publicnode.com'),
+            http('https://base-sepolia.blockpi.network/v1/rpc/public'),
+            http('https://1rpc.io/base-sepolia'),
             http()
         ]),
     },

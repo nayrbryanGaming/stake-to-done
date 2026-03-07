@@ -116,18 +116,37 @@ function App() {
       return
     }
 
+    if (!description.trim()) {
+      notify('Description cannot be empty')
+      return
+    }
+
     try {
-      const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
+      const selectedDate = new Date(deadline)
+      if (isNaN(selectedDate.getTime())) {
+        notify('Invalid deadline date')
+        return
+      }
+
+      const deadlineTimestamp = Math.floor(selectedDate.getTime() / 1000)
+      const now = Math.floor(Date.now() / 1000)
+
+      if (deadlineTimestamp <= now) {
+        notify('Deadline must be in the future')
+        return
+      }
+
       writeContract({
         address: STAKE_TO_DONE_ADDRESS,
         abi: STAKE_TO_DONE_ABI,
         functionName: 'createTask',
-        args: [description, BigInt(deadlineTimestamp)],
+        args: [description.trim(), BigInt(deadlineTimestamp)],
       })
       setDescription('')
       setDeadline('')
     } catch (err) {
       console.error("Creation Error:", err)
+      notify('Failed to initiate task')
     }
   }
 
@@ -553,9 +572,9 @@ function TaskItem({ id, refetchAll, searchQuery, notify }) {
   const claimed = typeof task === 'object' && !Array.isArray(task) ? task.claimed : task[6]
 
   // Search Filter
-  if (searchQuery && !description.toLowerCase().includes(searchQuery.toLowerCase())) return null
+  if (searchQuery && !description.toString().toLowerCase().includes(searchQuery.toLowerCase())) return null
 
-  const isExpired = Number(deadline) < Date.now() / 1000
+  const isExpired = Number(deadline) < Math.floor(Date.now() / 1000)
   const isStaked = amount > 0n
   const safeStakeAmount = stakeAmount && !isNaN(stakeAmount) ? stakeAmount : '0'
   const needsApproval = (allowance || 0n) < parseUnits(safeStakeAmount, 18)
@@ -563,20 +582,28 @@ function TaskItem({ id, refetchAll, searchQuery, notify }) {
   const handleAction = () => {
     try {
       if (isTxPending || isConfirming) return;
+
+      const cleanStakeAmount = safeStakeAmount.toString().trim()
+      if (!isStaked && (!cleanStakeAmount || isNaN(cleanStakeAmount) || Number(cleanStakeAmount) <= 0)) {
+        notify("Enter a valid stake amount (> 0)")
+        return
+      }
+
       if (!isStaked) {
+        const parsedAmount = parseUnits(cleanStakeAmount, 18)
         if (needsApproval) {
           writeContract({
             address: MOCK_USDC_ADDRESS,
             abi: MOCK_USDC_ABI,
             functionName: 'approve',
-            args: [STAKE_TO_DONE_ADDRESS, parseUnits(stakeAmount || '0', 18)],
+            args: [STAKE_TO_DONE_ADDRESS, parsedAmount],
           })
         } else {
           writeContract({
             address: STAKE_TO_DONE_ADDRESS,
             abi: STAKE_TO_DONE_ABI,
             functionName: 'stakeTask',
-            args: [BigInt(taskId || 0), parseUnits(stakeAmount || '0', 18)],
+            args: [BigInt(taskId || 0), parsedAmount],
           })
         }
       } else if (!completed && !claimed) {
@@ -589,7 +616,7 @@ function TaskItem({ id, refetchAll, searchQuery, notify }) {
       }
     } catch (err) {
       console.error("Action Failed:", err);
-      notify("Action Failed. Check Console.")
+      notify("Action Failed: " + (err.shortMessage || "Check Console"))
     }
   }
 
@@ -660,7 +687,7 @@ function TaskItem({ id, refetchAll, searchQuery, notify }) {
             </div>
             <div>
               <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Termination Date</div>
-              <div className="text-xs font-bold text-gray-400">{new Date(Number(deadline) * 1000).toLocaleString()}</div>
+              <div className="text-xs font-bold text-gray-400">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
             </div>
           </div>
 

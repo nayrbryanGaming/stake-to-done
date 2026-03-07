@@ -1,7 +1,8 @@
 {
     "version": 2,
     "framework": "vite",
-    "buildCommand": "npm run build --prefix frontend",
     "installCommand": "npm install",
-    "outputDirectory": "frontend/dist"
+    "buildCommand": "npm run build",
+    "outputDirectory": "frontend/dist",
+    "cleanUrls": true
 }
