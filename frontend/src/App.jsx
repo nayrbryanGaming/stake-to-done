@@ -6,10 +6,14 @@ import {
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useBalance
+  useBalance,
+  useChainId,
+  useSwitchChain
 } from 'wagmi'
 import { injected } from 'wagmi/connectors'
+import { baseSepolia } from 'wagmi/chains'
 import { formatUnits, parseUnits } from 'viem'
+import confetti from 'canvas-confetti'
 import {
   Wallet,
   PlusCircle,
@@ -31,7 +35,6 @@ import {
   Settings,
   LogOut
 } from 'lucide-react'
-
 import {
   STAKE_TO_DONE_ADDRESS,
   STAKE_TO_DONE_ABI,
@@ -41,10 +44,12 @@ import {
 
 function App() {
   const { address, isConnected } = useAccount()
+  const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
   const { connect } = useConnect()
   const { disconnect } = useDisconnect()
-  const { writeContract, data: hash, isPending: isTxPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending: isTxPending, error: writeError } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess: isConfirmed, error: txError } = useWaitForTransactionReceipt({ hash })
 
   const [description, setDescription] = useState('')
   const [deadline, setDeadline] = useState('')
@@ -52,14 +57,33 @@ function App() {
   const [showNotification, setShowNotification] = useState(false)
   const [notificationMsg, setNotificationMsg] = useState('')
 
+  const isWrongChain = isConnected && chainId !== baseSepolia.id
+
+  // Enhanced Error Logging
+  useEffect(() => {
+    if (writeError) {
+      console.error("Contract Write Error:", writeError)
+      notify(`Action Failed: ${writeError.shortMessage || writeError.message}`)
+    }
+    if (txError) {
+      console.error("Transaction Error:", txError)
+      notify(`Transaction Failed: ${txError.message}`)
+    }
+  }, [writeError, txError])
+
   // Get user task IDs
-  const { data: userTaskIds, refetch: refetchIds } = useReadContract({
+  const { data: userTaskIds, refetch: refetchIds, isError: idsError } = useReadContract({
     address: STAKE_TO_DONE_ADDRESS,
     abi: STAKE_TO_DONE_ABI,
     functionName: 'getUserTasks',
     args: [address],
-    query: { enabled: !!address }
+    query: { enabled: !!address && !isWrongChain }
   })
+
+  // Log connectivity issues
+  useEffect(() => {
+    if (idsError) console.error("Failed to fetch task IDs. Is the contract address correct?", STAKE_TO_DONE_ADDRESS)
+  }, [idsError])
 
   // Get USDC Balance
   const { data: usdcBalance, refetch: refetchBalance } = useReadContract({
@@ -67,7 +91,7 @@ function App() {
     abi: MOCK_USDC_ABI,
     functionName: 'balanceOf',
     args: [address],
-    query: { enabled: !!address }
+    query: { enabled: !!address && !isWrongChain }
   })
 
   const notify = (msg) => {
@@ -80,25 +104,39 @@ function App() {
     if (isConfirmed) {
       refetchIds()
       refetchBalance()
-      notify('Transaction Confirmed! Protocol Updated.')
+      notify('Protocol Update Successful')
     }
   }, [isConfirmed, refetchIds, refetchBalance])
 
   const handleCreateTask = async (e) => {
     e.preventDefault()
-    if (!deadline) return
-    const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
-    writeContract({
-      address: STAKE_TO_DONE_ADDRESS,
-      abi: STAKE_TO_DONE_ABI,
-      functionName: 'createTask',
-      args: [description, BigInt(deadlineTimestamp)],
-    })
-    setDescription('')
-    setDeadline('')
+    if (!deadline || !isConnected) return
+    if (isWrongChain) {
+      switchChain({ chainId: baseSepolia.id })
+      return
+    }
+
+    try {
+      const deadlineTimestamp = Math.floor(new Date(deadline).getTime() / 1000)
+      writeContract({
+        address: STAKE_TO_DONE_ADDRESS,
+        abi: STAKE_TO_DONE_ABI,
+        functionName: 'createTask',
+        args: [description, BigInt(deadlineTimestamp)],
+      })
+      setDescription('')
+      setDeadline('')
+    } catch (err) {
+      console.error("Creation Error:", err)
+    }
   }
 
   const handleMint = () => {
+    if (!isConnected) return
+    if (isWrongChain) {
+      switchChain({ chainId: baseSepolia.id })
+      return
+    }
     writeContract({
       address: MOCK_USDC_ADDRESS,
       abi: MOCK_USDC_ABI,
@@ -114,6 +152,14 @@ function App() {
         <div className="mesh-circle c-1"></div>
         <div className="mesh-circle c-2"></div>
       </div>
+
+      {/* Network Warning */}
+      {isWrongChain && (
+        <div className="fixed top-0 left-0 w-full bg-red-600 text-white py-2 z-[60] text-center text-xs font-black uppercase tracking-widest animate-pulse">
+          Wrong Network. Switch to Base Sepolia to continue protocol enforcement.
+          <button onClick={() => switchChain({ chainId: baseSepolia.id })} className="ml-4 underline">Switch Now</button>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {showNotification && (
@@ -136,7 +182,10 @@ function App() {
             </div>
             <div>
               <h1 className="text-2xl font-black tracking-tighter leading-none font-heading">STAKE-TO-DONE</h1>
-              <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-400/80">Proof of Commitment</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-400/80">Base Sepolia Sync Active</p>
+              </div>
             </div>
           </div>
 
@@ -146,7 +195,7 @@ function App() {
                 <div className="hidden md:flex flex-col items-end">
                   <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Staking Wallet</span>
                   <span className="text-sm font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">
-                    {address.slice(0, 6)}...{address.slice(-4)}
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
                   </span>
                 </div>
                 <button
@@ -182,7 +231,7 @@ function App() {
               <div className="relative z-10 max-w-2xl">
                 <div className="flex items-center gap-3 mb-8 bg-white/5 w-fit px-5 py-2 rounded-full border border-white/10 backdrop-blur-md">
                   <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
-                  <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Protocol Version 1.0.4 - Mainnet Ready</span>
+                  <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Protocol Version 1.0.4 - Base Sepolia Testnet</span>
                 </div>
 
                 <h2 className="text-6xl font-black mb-6 leading-[1.05] font-heading tracking-tight">
@@ -216,6 +265,20 @@ function App() {
                     <PlusCircle className="w-5 h-5 text-indigo-400" />
                     <span>Get Test Funds</span>
                   </button>
+
+                  <div className="glass-card bg-purple-500/5 px-8 py-5 border-purple-500/20 group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                        <ShieldCheck className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-3xl font-black tabular-nums">
+                          {userTaskIds ? (userTaskIds.length * 10).toLocaleString() : '0'}
+                        </div>
+                        <div className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Protocol TrustScore</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -246,7 +309,50 @@ function App() {
 
             {/* Task List Grid */}
             <div className="animate-in space-y-6" style={{ animationDelay: '0.4s' }}>
-              {!userTaskIds || userTaskIds.length === 0 ? (
+              {!isConnected ? (
+                <div className="glass-card p-24 text-center border-dashed border-2 bg-transparent">
+                  <div className="w-24 h-24 bg-indigo-500/10 border border-indigo-500/20 rounded-[32px] flex items-center justify-center mx-auto mb-8">
+                    <Wallet className="w-12 h-12 text-indigo-400" />
+                  </div>
+                  <h4 className="text-2xl font-black mb-3 text-white uppercase tracking-tight">Connect Protocol</h4>
+                  <p className="text-gray-500 max-w-xs mx-auto font-bold mb-8">Synchronize your wallet to access the decentralized commitment ledger.</p>
+                  <button
+                    onClick={() => connect({ connector: injected() })}
+                    className="btn-primary h-14 px-8 rounded-2xl font-black flex items-center gap-3 text-white mx-auto"
+                  >
+                    Authorize Wallet
+                  </button>
+                </div>
+              ) : isWrongChain ? (
+                <div className="glass-card p-24 text-center border-red-500/20 bg-red-500/[0.02]">
+                  <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+                  <h4 className="text-2xl font-black mb-3 text-red-400 uppercase tracking-tight">Protocol Mismatch</h4>
+                  <p className="text-gray-500 max-w-xs mx-auto font-bold mb-8">The protocol requires Base Sepolia. Please switch networks to continue.</p>
+                  <button
+                    onClick={() => switchChain({ chainId: baseSepolia.id })}
+                    className="h-14 px-8 rounded-2xl bg-red-600 text-white font-black flex items-center gap-3 mx-auto hover:bg-red-500 transition-colors"
+                  >
+                    Switch to Base Sepolia
+                  </button>
+                </div>
+              ) : idsError ? (
+                <div className="glass-card p-24 text-center border-red-500/20 bg-red-500/[0.02]">
+                  <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+                  <h4 className="text-2xl font-black mb-3 text-red-400 uppercase tracking-tight">Sync Failure</h4>
+                  <p className="text-gray-500 max-w-xs mx-auto font-bold mb-8">Failed to synchronize with the protocol. This could be due to an RPC issue or an incorrect contract address.</p>
+                  <button
+                    onClick={() => refetchIds()}
+                    className="h-14 px-8 rounded-2xl bg-indigo-600 text-white font-black flex items-center gap-3 mx-auto hover:bg-indigo-500 transition-colors"
+                  >
+                    Retry Synchronization
+                  </button>
+                </div>
+              ) : !userTaskIds ? (
+                <div className="glass-card p-24 text-center">
+                  <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mx-auto mb-6"></div>
+                  <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Synchronizing with Base Protocol...</p>
+                </div>
+              ) : userTaskIds.length === 0 ? (
                 <div className="glass-card p-24 text-center border-dashed border-2 bg-transparent">
                   <div className="w-24 h-24 bg-white/5 border border-white/5 rounded-[32px] flex items-center justify-center mx-auto mb-8 rotate-12 group hover:rotate-0 transition-transform duration-500">
                     <Clock className="w-12 h-12 text-gray-700 group-hover:text-indigo-500 transition-colors" />
@@ -262,6 +368,7 @@ function App() {
                       id={id}
                       refetchAll={() => { refetchIds(); refetchBalance(); }}
                       searchQuery={searchQuery}
+                      notify={notify}
                     />
                   ))}
                 </div>
@@ -310,16 +417,16 @@ function App() {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={!isConnected || isTxPending}
+                    disabled={!isConnected || isTxPending || isConfirming}
                     className="w-full h-20 btn-primary text-white font-black rounded-[24px] text-lg flex items-center justify-center gap-3 group disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <span>Initiate Commitment</span>
+                    <span>{isConfirming ? 'Finalizing...' : 'Initiate Commitment'}</span>
                     <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
                   </button>
-                  {isTxPending && (
+                  {(isTxPending || isConfirming) && (
                     <div className="mt-4 flex items-center justify-center gap-2 text-indigo-400 animate-pulse">
                       <Zap className="w-4 h-4" />
-                      <span className="text-xs font-black uppercase tracking-widest">Awaiting Block...</span>
+                      <span className="text-xs font-black uppercase tracking-widest">{isConfirming ? 'Confirming Onchain...' : 'Awaiting Wallet...'}</span>
                     </div>
                   )}
                 </div>
@@ -351,10 +458,42 @@ function App() {
   )
 }
 
-function TaskItem({ id, refetchAll, searchQuery }) {
+function Countdown({ deadline, onExpire }) {
+  const [timeLeft, setTimeLeft] = useState('')
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Math.floor(Date.now() / 1000)
+      const diff = Number(deadline) - now
+
+      if (diff <= 0) {
+        setTimeLeft('EXPIRED')
+        clearInterval(timer)
+        onExpire?.()
+        return
+      }
+
+      const h = Math.floor(diff / 3600)
+      const m = Math.floor((diff % 3600) / 60)
+      const s = diff % 60
+      setTimeLeft(`${h}h ${m}m ${s}s`)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [deadline, onExpire])
+
+  return (
+    <div className="flex items-center gap-2 px-3 py-1 bg-black/40 border border-white/5 rounded-full">
+      <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+      <span className="text-[10px] font-mono font-bold text-indigo-300 uppercase tracking-widest">{timeLeft}</span>
+    </div>
+  )
+}
+
+function TaskItem({ id, refetchAll, searchQuery, notify }) {
   const { address } = useAccount()
-  const { writeContract, data: hash, isPending: isTxPending } = useWriteContract()
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
+  const { writeContract, data: hash, isPending: isTxPending, error: writeError } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess: isConfirmed, error: txError } = useWaitForTransactionReceipt({ hash })
 
   const [stakeAmount, setStakeAmount] = useState('10')
 
@@ -365,7 +504,7 @@ function TaskItem({ id, refetchAll, searchQuery }) {
     args: [id]
   })
 
-  const { data: allowance } = useReadContract({
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: MOCK_USDC_ADDRESS,
     abi: MOCK_USDC_ABI,
     functionName: 'allowance',
@@ -377,61 +516,103 @@ function TaskItem({ id, refetchAll, searchQuery }) {
     if (isConfirmed) {
       refetchTask()
       refetchAll()
+      refetchAllowance()
+      notify('Onchain Transaction Confirmed')
     }
-  }, [isConfirmed, refetchTask, refetchAll])
+  }, [isConfirmed, refetchTask, refetchAll, refetchAllowance, notify])
+
+  useEffect(() => {
+    if (writeError) notify(`Contract Error: ${writeError.shortMessage || 'Rejected by Protocol'}`)
+    if (txError) notify(`Transaction Error: ${txError.message}`)
+  }, [writeError, txError, notify])
+
+  // Separate effect for confetti to avoid loop
+  const [confettiShown, setConfettiShown] = useState(false)
+  useEffect(() => {
+    const isTaskCompleted = task && (typeof task === 'object' ? task.completed : task[5])
+    if (isTaskCompleted && !confettiShown) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#6366f1', '#a855f7', '#ffffff']
+      })
+      setConfettiShown(true)
+    }
+  }, [task, confettiShown])
 
   if (!task) return null
 
-  const [taskId, user, description, amount, deadline, completed, claimed] = task
+  // Support both array and object returns from wagmi/viem
+  const taskId = typeof task === 'object' && !Array.isArray(task) ? task.id : task[0]
+  const user = typeof task === 'object' && !Array.isArray(task) ? task.user : task[1]
+  const description = typeof task === 'object' && !Array.isArray(task) ? task.description : task[2]
+  const amount = typeof task === 'object' && !Array.isArray(task) ? task.stakeAmount : task[3]
+  const deadline = typeof task === 'object' && !Array.isArray(task) ? task.deadline : task[4]
+  const completed = typeof task === 'object' && !Array.isArray(task) ? task.completed : task[5]
+  const claimed = typeof task === 'object' && !Array.isArray(task) ? task.claimed : task[6]
 
   // Search Filter
   if (searchQuery && !description.toLowerCase().includes(searchQuery.toLowerCase())) return null
 
   const isExpired = Number(deadline) < Date.now() / 1000
   const isStaked = amount > 0n
-  const needsApproval = (allowance || 0n) < parseUnits(stakeAmount, 18)
+  const safeStakeAmount = stakeAmount && !isNaN(stakeAmount) ? stakeAmount : '0'
+  const needsApproval = (allowance || 0n) < parseUnits(safeStakeAmount, 18)
 
   const handleAction = () => {
-    if (!isStaked) {
-      if (needsApproval) {
-        writeContract({
-          address: MOCK_USDC_ADDRESS,
-          abi: MOCK_USDC_ABI,
-          functionName: 'approve',
-          args: [STAKE_TO_DONE_ADDRESS, parseUnits(stakeAmount, 18)],
-        })
-      } else {
+    try {
+      if (isTxPending || isConfirming) return;
+      if (!isStaked) {
+        if (needsApproval) {
+          writeContract({
+            address: MOCK_USDC_ADDRESS,
+            abi: MOCK_USDC_ABI,
+            functionName: 'approve',
+            args: [STAKE_TO_DONE_ADDRESS, parseUnits(stakeAmount || '0', 18)],
+          })
+        } else {
+          writeContract({
+            address: STAKE_TO_DONE_ADDRESS,
+            abi: STAKE_TO_DONE_ABI,
+            functionName: 'stakeTask',
+            args: [BigInt(taskId || 0), parseUnits(stakeAmount || '0', 18)],
+          })
+        }
+      } else if (!completed && !claimed) {
         writeContract({
           address: STAKE_TO_DONE_ADDRESS,
           abi: STAKE_TO_DONE_ABI,
-          functionName: 'stakeTask',
-          args: [BigInt(taskId), parseUnits(stakeAmount, 18)],
+          functionName: 'completeTask',
+          args: [BigInt(taskId || 0)],
         })
       }
-    } else if (!completed && !claimed) {
-      writeContract({
-        address: STAKE_TO_DONE_ADDRESS,
-        abi: STAKE_TO_DONE_ABI,
-        functionName: 'completeTask',
-        args: [BigInt(taskId)],
-      })
+    } catch (err) {
+      console.error("Action Failed:", err);
+      notify("Action Failed. Check Console.")
     }
   }
 
   const handleClaim = () => {
-    writeContract({
-      address: STAKE_TO_DONE_ADDRESS,
-      abi: STAKE_TO_DONE_ABI,
-      functionName: 'claimExpiredTask',
-      args: [BigInt(taskId)],
-    })
+    try {
+      if (isTxPending || isConfirming) return;
+      writeContract({
+        address: STAKE_TO_DONE_ADDRESS,
+        abi: STAKE_TO_DONE_ABI,
+        functionName: 'claimExpiredTask',
+        args: [BigInt(taskId || 0)],
+      })
+    } catch (err) {
+      console.error("Claim Failed:", err);
+      notify("Claim Failed.")
+    }
   }
 
   return (
     <div className={`glass-card p-8 flex flex-col md:flex-row items-stretch md:items-center gap-8 group transition-all duration-500 overflow-hidden relative ${completed ? 'border-l-4 border-l-emerald-500 bg-emerald-500/[0.02]' :
-        claimed ? 'border-l-4 border-l-red-500 bg-red-500/[0.02]' :
-          isStaked ? 'border-l-4 border-l-amber-500 bg-amber-500/[0.02]' :
-            'border-l-4 border-l-indigo-500 bg-indigo-500/[0.02]'
+      claimed ? 'border-l-4 border-l-red-500 bg-red-500/[0.02]' :
+        isStaked ? 'border-l-4 border-l-amber-500 bg-amber-500/[0.02]' :
+          'border-l-4 border-l-indigo-500 bg-indigo-500/[0.02]'
       }`}>
       {/* Visual Indicator Background */}
       <div className={`absolute top-0 right-0 w-32 h-full opacity-[0.03] transition-opacity group-hover:opacity-[0.07] ${completed ? 'bg-emerald-500' : claimed ? 'bg-red-500' : isStaked ? 'bg-amber-500' : 'bg-indigo-500'
@@ -442,7 +623,7 @@ function TaskItem({ id, refetchAll, searchQuery }) {
           <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-gray-500">Task Protocol ID #{taskId.toString()}</span>
 
           {completed ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/10">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/10 status-glow-success">
               <CheckCircle className="w-3.5 h-3.5" /> Mission Verified
             </div>
           ) : claimed ? (
@@ -450,7 +631,7 @@ function TaskItem({ id, refetchAll, searchQuery }) {
               <Flame className="w-3.5 h-3.5" /> Protocol Burned
             </div>
           ) : isStaked ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/10 scale-105">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/10 scale-105 status-glow-staked">
               <ShieldCheck className="w-3.5 h-3.5 animate-pulse" /> Active Resolve
             </div>
           ) : (
@@ -460,9 +641,13 @@ function TaskItem({ id, refetchAll, searchQuery }) {
           )}
 
           {isExpired && !completed && !claimed && (
-            <span className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-600/30 rounded-lg text-red-500 text-[10px] font-black uppercase tracking-widest animate-bounce">
+            <span className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-600/30 rounded-lg text-red-500 text-[10px] font-black uppercase tracking-widest animate-bounce status-glow-failed">
               <Bell className="w-3.5 h-3.5" /> Defeated
             </span>
+          )}
+
+          {!completed && !claimed && !isExpired && (
+            <Countdown deadline={deadline} onExpire={() => refetchTask()} />
           )}
         </div>
 
@@ -499,10 +684,10 @@ function TaskItem({ id, refetchAll, searchQuery }) {
             {isStaked ? (
               <button
                 onClick={handleAction}
-                disabled={isTxPending || isExpired}
+                disabled={isTxPending || isConfirming || isExpired}
                 className="h-20 px-10 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xl shadow-emerald-600/30 disabled:opacity-30 disabled:grayscale group/btn"
               >
-                {isTxPending ? 'Verifying...' : 'Settle Proof'}
+                {isConfirming ? 'Finalizing...' : isTxPending ? 'Verifying...' : 'Settle Proof'}
                 <Trophy className="w-5 h-5 group-hover/btn:scale-125 transition-transform" />
               </button>
             ) : (
@@ -516,16 +701,16 @@ function TaskItem({ id, refetchAll, searchQuery }) {
                   />
                   <button
                     onClick={handleAction}
-                    disabled={isTxPending}
+                    disabled={isTxPending || isConfirming}
                     className="h-14 px-8 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/20"
                   >
-                    {isTxPending ? '...' : needsApproval ? 'Authorize' : 'Lock Stake'}
+                    {isConfirming ? '...' : isTxPending ? '...' : needsApproval ? 'Authorize' : 'Lock Stake'}
                   </button>
                 </div>
               </div>
             )}
 
-            {isExpired && (
+            {isExpired && isStaked && (
               <button
                 onClick={handleClaim}
                 disabled={isTxPending}
@@ -539,11 +724,11 @@ function TaskItem({ id, refetchAll, searchQuery }) {
         )}
 
         {completed && (
-          <div className="h-20 px-10 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-black text-sm flex items-center gap-3 animate-in">
+          <div className="h-20 px-10 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-black text-sm flex items-center gap-3 animate-in shadow-lg shadow-emerald-500/5">
             <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 fill-emerald-500/20" />
             </div>
-            PROVED
+            PROTOCOL COMPLETE
           </div>
         )}
 

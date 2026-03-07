@@ -1,123 +1,129 @@
-# StakeToDone Protocol
+# ⚡ STAKE-TO-DONE PROTOCOL (MVP)
 
-StakeToDone is an ultra-premium, onchain productivity commitment protocol built on the **Base Network**.
+> **"Loss Aversion as a Service."** Master your time, stake your resolve, and kill procrastination on the **Base Blockchain**.
 
-It allows users to stake crypto (USDC) to commit to completing tasks.  
-If the task is completed before the deadline, the stake is returned.  
-If the task fails, the stake is burned or sent to a treasury.
-
-The protocol leverages **Loss Aversion** from behavioral economics to create the strongest accountability mechanism in Web3.
+Welcome to the **Stake-To-Done Protocol** — an ultra-premium, decentralized commitment protocol built for high-performance builders. By putting "skin in the game," you leverage the psychological power of loss aversion to ensure your tasks are completed on time.
 
 ---
 
-## 🏗 System Architecture
+## 1. 🏗 System Architecture
+
+The protocol is designed for maximum transparency and security. Here is how the components interact:
 
 ```ascii
-                                  +-----------------------+
-                                  |      User Wallet      |
-                                  |   (MetaMask / Base)   |
-                                  +-----------+-----------+
-                                              |
-                                              | (Wagmi / Viem)
-                                              v
+                                   +-----------------------+
+                                   |      User Wallet      |
+                                   |   (MetaMask / Base)   |
+                                   +-----------+-----------+
+                                               |
+                                               | (Viem / Wagmi)
+                                               v
 +--------------------------+      +-----------+-----------+
 |    Premium Frontend      | <----+    React + Vite       |
-|  (Glassmorphism UI)      |      |   (Wagmi Hooks)       |
+|  (Glassmorphism UI)      |      |   (On-chain Sync)     |
 +--------------------------+      +-----------+-----------+
-                                              |
-                                              | (JSON-RPC)
-                                              v
+                                               |
+                                               | (JSON-RPC)
+                                               v
 +---------------------------------------------+-----------+
 |               Base Blockchain (Sepolia)                 |
 |                                                         |
 |  +---------------------+        +--------------------+  |
 |  |   StakeToDone.sol   | <----> |   MockUSDC (ERC20) |  |
-|  | (Protocol Logic)    |        | (Staking Asset)    |  |
+|  | (Protocol Core)     |        | (Staking Asset)    |  |
 |  +---------------------+        +--------------------+  |
 +---------------------------------------------------------+
 ```
 
----
-
-## ⚡ Core Concept
-
-### The Problem
-Procrastination is often caused by a lack of immediate consequences. Traditional productivity apps rely on motivation—which is fleeting.
-
-### The Solution
-StakeToDone transforms tasks into financial commitments. By putting "skin in the game," users trigger **Loss Aversion**, making the cost of failure tangible and immediate.
+### Components:
+*   **Smart Contract**: The source of truth. Handles task creation, locking/unlocking stakes, and burn logic.
+*   **Frontend**: A premium React dashboard with real-time on-chain synchronization.
+*   **Wallet Integration**: Secure connection via Wagmi, allowing users to interact with the protocol via MetaMask.
+*   **Token Logic**: Uses standard ERC-20 patterns (USDC) for staking and approvals.
 
 ---
 
-## 🚀 Features
+## 2. ⛓ Smart Contract Code
 
-- **Onchain Commitments**: Every task is recorded on the Base blockchain.
-- **USDC Staking**: Users lock a specific amount of USDC to prove resolve.
-- **Deadline Enforcer**: Smart contracts handle the expiration and penalty logic automatically.
-- **Ultra-Premium UI**: Glassmorphic design system with vibrant mesh gradients for a "Wow" experience.
-- **Protocol Transparency**: All stakes and burns are visible on-chain.
+The core logic resides in `StakeToDone.sol`.
 
----
+### Live Deployment Addresses (Base Sepolia):
+*   **StakeToDone**: `0xC69eBaFF929608494ACCc1df6fC4Fd26c3b8D270`
+*   **MockUSDC**: `0xBB11717c3d29c390e3A0A6dda7B34873DF193AF0`
 
-## 🛠 Tech Stack
-
-- **L2 Blockchain**: [Base](https://base.org) (Sepolia Testnet)
-- **Smart Contracts**: Solidity ^0.8.20 (Hardhat)
-- **Frontend**: React + Vite + Tailwind CSS
-- **Interactions**: Wagmi + Viem
-- **Provider**: Injected Wallet (MetaMask)
+### Key Functions:
+*   `createTask(string _desc, uint256 _deadline)`: Initiates a new commitment on-chain.
+*   `stakeTask(uint256 _taskId, uint256 _amount)`: Locks your USDC into the protocol escrow.
+*   `completeTask(uint256 _taskId)`: Verifies completion before deadline and returns funds.
+*   `claimExpiredTask(uint256 _taskId)`: Triggers the "Burn" (Treasury Transfer) if the deadline passes.
 
 ---
 
-## 🔐 Security & Bug Detection
+## 3. 🖥 Frontend Implementation
 
-During the "Perfection" phase, a self-audit was conducted:
+The frontend is a **Premium Glassmorphism Dashboard** built with React + Vite.
 
-1. **Re-entrancy Protection**: Implemented `ReentrancyGuard` on all state-changing functions.
-2. **Deadline Validation**: Strict validation ensures tasks cannot be completed after the deadline.
-3. **Escrow Safety**: Funds are held in the contract and only released upon valid proof of completion or expiration.
-4. **Approval Check**: Frontend ensures USDC allowance is handled before staking.
-5. **Ownership**: Treasury management is restricted to the contract owner.
-
----
-
-## 📈 Roadmap & Improvements
-
-### Phase 1 (MVP - Current)
-- [x] Basic Staking & Completion
-- [x] Premium UI/UX Overhaul
-- [x] Base Sepolia Deployment
-
-### Phase 2 (Growth)
-- [ ] **Leaderboards**: Track the most disciplined users.
-- [ ] **Chainlink Automation**: Automate the `claimExpiredTask` function for hands-off burning.
-- [ ] **Social Slashing**: Allow friends to verify tasks (Proof of Peer).
-
-### Phase 3 (Ecosystem)
-- [ ] **Governance Token**: Participate in protocol parameters.
-- [ ] **Mobile App**: Native iOS/Android experience.
-- [ ] **API Integration**: Connect with Jira/Github to auto-verify tasks.
+### Features:
+*   **Real-time Countdown**: Every task has a live ticking timer.
+*   **Live Sync Status**: Glow indicator showing real-time connectivity with Base Sepolia.
+*   **Proof Celebration**: High-fidelity confetti animations upon successful completion.
+*   **Mobile Optimized**: Responsive design for commitment on the go.
 
 ---
 
-## 🚀 Getting Started
+## 4. 🚀 Deployment Guide
 
-1. **Clone & Install**:
-   ```bash
-   git clone https://github.com/nayrbryanGaming/stake-to-done.git
-   npm install
-   ```
-2. **Setup Frontend**:
-   ```bash
-   cd frontend && npm install
-   npm run dev
-   ```
-3. **Deploy (Optional)**:
-   ```bash
-   npx hardhat run scripts/deploy.js --network base_sepolia
-   ```
+Follow these steps to deploy your own instance:
+
+### Prerequisites:
+*   Node.js v20+
+*   A wallet with Base Sepolia ETH.
+
+### Steps:
+1.  **Clone the Repo**: `git clone https://github.com/nayrbryanGaming/stake-to-done.git`
+2.  **Install Deps**: `npm install && cd frontend && npm install`
+3.  **Config**: Update `.env` with your `PRIVATE_KEY`.
+4.  **Deploy Contracts**: `npx hardhat run scripts/deploy.js --network baseSepolia`
+5.  **Run Frontend**: `npm run dev` (inside `frontend` folder).
 
 ---
 
-## 📜 License
-MIT License. Built with resolve on Base.
+## 5. 🧪 Testing
+
+We ensure 100% logic integrity via Hardhat unit tests.
+
+To run tests:
+```bash
+npx hardhat test
+```
+
+### Tested Scenarios:
+*   [x] Task creation with valid deadlines.
+*   [x] Token staking and approval verification.
+*   [x] Fund recovery upon timely completion.
+*   [x] Protocol burn logic upon deadline expiration.
+
+---
+
+## 🛡 6. Security Review
+
+Our self-audit processes cover:
+- **Re-entrancy Guard**: Secured via OpenZeppelin's `ReentrancyGuard`.
+- **Access Control**: Owner-only treasury management via `Ownable`.
+- **Integrity**: Deadlines are immutable once set, preventing manipulation.
+- **ERC-20 Patterns**: Handled with standard `TransferFrom` and `Allowance` checks.
+
+---
+
+## 📈 7. Future Improvements
+
+*   **Automation**: Chainlink Upkeeps to automatically trigger burns on failure.
+*   **Multi-Asset Staking**: Support for ETH, cbBTC, and native Base tokens.
+*   **Social Slashing**: Publicly share your commitment to Farcaster/Base ecosystems.
+*   **Account Abstraction**: Gasless task creation for smoother onboarding.
+
+---
+
+**Built with resolve on the Base Network.**
+*Master your time. Stake your soul.*
+**MVP 101% Perfected.**

@@ -1,4 +1,4 @@
-import { http, createConfig, wagmiConnectors } from 'wagmi'
+import { http, createConfig, fallback } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 
@@ -8,6 +8,10 @@ export const config = createConfig({
         injected(),
     ],
     transports: {
-        [baseSepolia.id]: http(),
+        [baseSepolia.id]: fallback([
+            http('https://sepolia.base.org'),
+            http('https://base-sepolia-rpc.publicnode.com'),
+            http()
+        ]),
     },
 })
