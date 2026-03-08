@@ -77,8 +77,14 @@ function App() {
     abi: STAKE_TO_DONE_ABI,
     functionName: 'getUserTasks',
     args: [address],
-    query: { enabled: !!address && !isWrongChain }
+    query: {
+      enabled: !!address && !isWrongChain,
+      staleTime: 5000,
+      refetchInterval: 10000
+    }
   })
+
+  const isLoadingTasks = !userTaskIds && !idsError && isConnected
 
   // Log connectivity issues
   useEffect(() => {
@@ -380,16 +386,28 @@ function App() {
                   <p className="text-gray-600 max-w-xs mx-auto font-bold">No commitments found on-chain. Deploy your first task to begin protocol enforcement.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-6">
-                  {userTaskIds.map(id => (
-                    <TaskItem
-                      key={id.toString()}
-                      id={id}
-                      refetchAll={() => { refetchIds(); refetchBalance(); }}
-                      searchQuery={searchQuery}
-                      notify={notify}
-                    />
-                  ))}
+                <div className="space-y-4">
+                  {isLoadingTasks ? (
+                    <div className="py-20 text-center space-y-4">
+                      <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto"></div>
+                      <div className="text-gray-500 font-medium animate-pulse">Synchronizing with Base...</div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-4">
+                      {[...userTaskIds].reverse().map(id => (
+                        <TaskItem
+                          key={id.toString()}
+                          id={id}
+                          searchQuery={searchQuery}
+                          notify={notify}
+                          refetchAll={() => {
+                            refetchIds()
+                            refetchBalance()
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
