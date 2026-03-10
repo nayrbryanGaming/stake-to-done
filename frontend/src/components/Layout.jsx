@@ -18,7 +18,7 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
     <div className="flex items-center gap-6">
       {isConnected ? (
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex flex-col items-end">
+          <div className="hidden md:flex flex-col items-end text-right">
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Staking Wallet</span>
             <span className="text-sm font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">
               {address?.slice(0, 6)}...{address?.slice(-4)}
@@ -37,7 +37,7 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
           onClick={() => connect({ connector: injected() })}
           className="btn-primary h-14 px-8 rounded-2xl font-black flex items-center gap-3 text-white group"
         >
-          <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" /> Connect Protocol
+          <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform shadow-xl shadow-indigo-600/30" /> Connect Protocol
         </button>
       )}
     </div>
