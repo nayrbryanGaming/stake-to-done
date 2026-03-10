@@ -11,7 +11,7 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
     <div className="relative z-10 max-w-2xl text-left">
       <div className="flex items-center gap-3 mb-8 bg-indigo-500/10 w-fit px-5 py-2 rounded-full border border-indigo-500/20 backdrop-blur-md">
         <div className="w-2 h-2 bg-indigo-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(129,140,248,0.8)]"></div>
-        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Protocol v1.0.7 - PREMIUM MVP READY</span>
+        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Protocol v1.0.8 - FINAL SYNC PERFECT</span>
       </div>
 
       <h2 className="text-6xl font-black mb-6 leading-[1.05] font-heading tracking-tight text-white">
