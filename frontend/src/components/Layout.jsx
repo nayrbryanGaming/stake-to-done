@@ -2,16 +2,13 @@ import { Zap, Bell } from 'lucide-react'
 
 export const Header = ({ address, isConnected, connect, disconnect, injected, isWrongChain, switchChain, baseSepolia }) => (
   <nav className="flex justify-between items-center py-8 mb-12 animate-in" style={{ animationDelay: '0.1s' }}>
-    <div className="flex items-center gap-4 group cursor-pointer">
-      <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[20px] flex items-center justify-center shadow-2xl shadow-indigo-500/30 group-hover:scale-110 transition-transform duration-500">
-        <Zap className="w-7 h-7 text-white fill-white/20" />
+    <div className="flex items-center gap-4">
+      <div className="w-14 h-14 btn-primary rounded-2xl flex items-center justify-center shadow-indigo-500/40">
+        <Zap className="w-8 h-8 text-white fill-white animate-pulse" />
       </div>
-      <div>
-        <h1 className="text-2xl font-black tracking-tighter leading-none font-heading text-white">STAKE-TO-DONE</h1>
-        <div className="flex items-center gap-2 mt-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
-          <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-400/80">Base Sepolia Sync Active</p>
-        </div>
+      <div className="text-left">
+        <h1 className="text-3xl font-black font-heading tracking-tighter text-white leading-none">STAKE-TO-DONE</h1>
+        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-1">Proof of Commitment • v1.1.0</p>
       </div>
     </div>
 
