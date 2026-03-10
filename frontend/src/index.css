@@ -14,67 +14,119 @@
   --color-staked: #f59e0b;
 }
 
-@layer base {
-  * {
-    @apply m-0 p-0 box-border;
-  }
-
-  body {
-    @apply bg-bg-dark text-white font-sans overflow-x-hidden antialiased;
-  }
-
-  h1, h2, h3, h4, .font-heading {
-    @apply font-heading;
-  }
+:root {
+  color-scheme: dark;
 }
 
-@layer components {
-  .glass-card {
-    @apply bg-glass-bg backdrop-blur-xl border border-glass-border rounded-[24px] transition-all duration-500 ease-out;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  .glass-card:hover {
-    @apply border-white/15 translate-y-[-4px] shadow-2xl shadow-black/50;
-  }
+body {
+  background-color: var(--color-bg-dark);
+  color: white;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-  .btn-primary {
-    @apply bg-gradient-to-br from-accent-primary to-accent-secondary shadow-lg shadow-accent-primary/50 transition-all duration-300;
-  }
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+}
 
-  .btn-primary:hover:not(:disabled) {
-    @apply shadow-xl shadow-accent-primary/80 scale-102;
-  }
+.glass-card {
+  background: var(--color-glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 24px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-  .btn-primary:active:not(:disabled) {
-    @apply scale-98;
-  }
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
 
-  .btn-glass {
-    @apply bg-white/5 border border-white/10 transition-all duration-300;
-  }
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+  box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5);
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  color: white;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+}
 
-  .btn-glass:hover:not(:disabled) {
-    @apply bg-white/10 border-white/20;
-  }
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 15px 30px -10px rgba(99, 102, 241, 0.8);
+  transform: scale(1.02);
+}
 
-  .mesh-bg {
-    @apply fixed inset-0 pointer-events-none -z-10 overflow-hidden;
-  }
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  .mesh-circle {
-    @apply absolute rounded-full blur-[100px] opacity-20;
-    animation: float 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
-  }
+.btn-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
 
-  .c-1 {
-    @apply w-[600px] h-[600px] bg-accent-primary -top-[100px] -left-[200px];
-    animation-delay: 0s;
-  }
+.btn-glass:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
 
-  .c-2 {
-    @apply w-[500px] h-[500px] bg-accent-secondary -bottom-[100px] -right-[100px];
-    animation-delay: -5s;
-  }
+.mesh-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.mesh-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.15;
+  animation: float 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+.c-1 {
+  width: 600px;
+  height: 600px;
+  background: var(--color-accent-primary);
+  top: -100px;
+  left: -200px;
+  animation-delay: 0s;
+}
+
+.c-2 {
+  width: 500px;
+  height: 500px;
+  background: var(--color-accent-secondary);
+  bottom: -100px;
+  right: -100px;
+  animation-delay: -5s;
 }
 
 @keyframes float {
@@ -92,14 +144,19 @@
 .status-glow-staked { box-shadow: 0 0 20px -5px var(--color-staked); }
 
 .animate-in {
-  @apply opacity-0 translate-y-5;
+  opacity: 0;
+  transform: translateY(20px);
   animation: slideUp 0.6s ease-out forwards;
 }
 
 @keyframes slideUp {
-  to { @apply opacity-100 translate-y-0; }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-::-webkit-scrollbar { @apply w-2; }
-::-webkit-scrollbar-track { @apply bg-black; }
-::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full hover:bg-zinc-700; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
