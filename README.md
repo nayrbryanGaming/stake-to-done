@@ -48,8 +48,8 @@ The protocol is designed for maximum transparency and security. Here is how the 
 The core logic resides in `StakeToDone.sol`.
 
 ### Live Deployment Addresses (Base Sepolia):
-*   **StakeToDone**: `0xC69eBaFF929608494ACCc1df6fC4Fd26c3b8D270`
-*   **MockUSDC**: `0xBB11717c3d29c390e3A0A6dda7B34873DF193AF0`
+*   **StakeToDone**: `0x37B1152040073EAdcC76609048c07C019A3F7789`
+*   **MockUSDC**: `0xBBa5c220330a4FB2d56505CD90F5ebBb6aD84985`
 
 ### Key Functions:
 *   `createTask(string _desc, uint256 _deadline)`: Initiates a new commitment on-chain.
