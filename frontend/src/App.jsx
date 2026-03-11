@@ -35,6 +35,7 @@ function App() {
 
   const [description, setDescription] = useState('')
   const [deadline, setDeadline] = useState('')
+  const [stakeAmount, setStakeAmount] = useState('10')
   const [searchQuery, setSearchQuery] = useState('')
   const [showNotification, setShowNotification] = useState(false)
   const [notificationMsg, setNotificationMsg] = useState('')
@@ -60,25 +61,45 @@ function App() {
     query: { enabled: !!address && !isWrongChain }
   })
 
+  const { data: userTasks, refetch: refetchTasks } = useReadContract({
+    address: STAKE_TO_DONE_ADDRESS,
+    abi: STAKE_TO_DONE_ABI,
+    functionName: 'getTaskDetails',
+    args: [userTaskIds],
+    query: { enabled: !!userTaskIds && userTaskIds.length > 0 }
+  })
+
   const { data: usdcBalance, refetch: refetchBalance } = useReadContract({
     address: MOCK_USDC_ADDRESS,
     abi: MOCK_USDC_ABI,
     functionName: 'balanceOf',
     args: [address],
+    query: { 
+      enabled: !!address && !isWrongChain,
+      refetchInterval: 5000 
+    }
+  })
+
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: MOCK_USDC_ADDRESS,
+    abi: MOCK_USDC_ABI,
+    functionName: 'allowance',
+    args: [address, STAKE_TO_DONE_ADDRESS],
     query: { enabled: !!address && !isWrongChain }
   })
 
   useEffect(() => {
     if (isConfirmed) {
       refetchIds()
+      refetchTasks()
       refetchBalance()
       notify('Protocol Update Successful')
     }
-  }, [isConfirmed, refetchIds, refetchBalance])
+  }, [isConfirmed, refetchIds, refetchTasks, refetchBalance])
 
   const handleCreateTask = async (e) => {
     e.preventDefault()
-    if (!deadline || !isConnected) return
+    if (!deadline || !isConnected || !stakeAmount) return
     if (isWrongChain) return switchChain({ chainId: baseSepolia.id })
 
     try {
@@ -87,12 +108,29 @@ function App() {
         return notify('Deadline must be in the future')
       }
 
+      const amountWei = parseUnits(stakeAmount, 18)
+
+      // 1. Check Allowance
+      if (allowance < amountWei) {
+        notify('Authorizing Tokens...')
+        await writeContract({
+          address: MOCK_USDC_ADDRESS,
+          abi: MOCK_USDC_ABI,
+          functionName: 'approve',
+          args: [STAKE_TO_DONE_ADDRESS, amountWei],
+        })
+        return // Wait for approval tx to confirm, then user clicks again
+      }
+
+      // 2. Transact
+      notify('Initiating Commitment...')
       writeContract({
         address: STAKE_TO_DONE_ADDRESS,
         abi: STAKE_TO_DONE_ABI,
-        functionName: 'createTask',
-        args: [description.trim(), BigInt(deadlineTimestamp)],
+        functionName: 'createAndStakeTask',
+        args: [description.trim(), BigInt(deadlineTimestamp), amountWei],
       })
+      
       setDescription('')
       setDeadline('')
     } catch (err) {
@@ -111,97 +149,134 @@ function App() {
     })
   }
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  if (!mounted) return null
+
   return (
-    <div className="min-h-screen pb-20 overflow-x-hidden selection:bg-indigo-500/30">
+    <div className="min-h-screen pb-10 flex flex-col">
       <div className="mesh-bg">
         <div className="mesh-circle c-1"></div>
         <div className="mesh-circle c-2"></div>
       </div>
 
+      <header className="sticky-top-nav">
+        <div className="container">
+          <Header 
+            address={address} 
+            isConnected={isConnected} 
+            connect={connect} 
+            disconnect={disconnect} 
+            injected={injected} 
+            isWrongChain={isWrongChain} 
+            switchChain={switchChain} 
+            baseSepolia={baseSepolia} 
+            usdcBalance={usdcBalance}
+          />
+        </div>
+      </header>
+
       {isWrongChain && (
-        <div className="fixed top-0 left-0 w-full bg-red-600 text-white py-2 z-[60] text-center text-xs font-black uppercase tracking-widest animate-pulse">
-          Wrong Network. Switch to Base Sepolia to continue protocol enforcement.
+        <div className="p-2 text-center bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest">
+          Wrong Network. Switch to Base Sepolia to continue.
           <button onClick={() => switchChain({ chainId: baseSepolia.id })} className="ml-4 underline">Switch Now</button>
         </div>
       )}
 
       <Toast showNotification={showNotification} notificationMsg={notificationMsg} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6">
-        <Header 
-          address={address} 
-          isConnected={isConnected} 
-          connect={connect} 
-          disconnect={disconnect} 
-          injected={injected} 
-          isWrongChain={isWrongChain} 
-          switchChain={switchChain} 
-          baseSepolia={baseSepolia} 
-        />
-
-        <main className="grid lg:grid-cols-12 gap-10">
-          <div className="lg:col-span-8 space-y-10">
+      <main className="container flex-1 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-8 space-y-6">
             <Hero usdcBalance={usdcBalance} handleMint={handleMint} userTaskIds={userTaskIds} />
 
-            <div className="flex flex-col sm:flex-row justify-between items-end gap-6 animate-in" style={{ animationDelay: '0.3s' }}>
-              <div className="text-left">
-                <h3 className="text-4xl font-black font-heading tracking-tight mb-2 flex items-center gap-4 text-white">
-                  Commitments
-                  <span className="text-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 w-10 h-10 flex items-center justify-center rounded-xl font-black italic">
-                    {userTaskIds?.length || 0}
-                  </span>
-                </h3>
-                <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Live Protocol Tasks</p>
-              </div>
-
-              <div className="relative w-full sm:w-80 group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-indigo-400 transition-colors" />
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <h3 className="text-sm font-black uppercase tracking-widest opacity-60">Active Commitments</h3>
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Filter by description..."
+                  placeholder="Filter goals..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pl-12 pr-6 text-sm focus:border-indigo-500/50 focus:bg-white/[0.08] outline-none transition-all placeholder:text-gray-700 font-bold text-white"
+                  className="input-field pl-9 h-9 text-xs w-full sm:w-64"
                 />
               </div>
             </div>
 
-            <div className="animate-in space-y-6" style={{ animationDelay: '0.4s' }}>
+            <div className="space-y-3">
               {!isConnected ? (
-                <div className="glass-card p-24 text-center border-dashed border-2 bg-transparent">
-                  <Wallet className="w-12 h-12 text-indigo-400 mx-auto mb-8" />
-                  <h4 className="text-2xl font-black mb-3 text-white uppercase tracking-tight">Connect Protocol</h4>
-                  <button onClick={() => connect({ connector: injected() })} className="btn-primary h-14 px-8 rounded-2xl font-black text-white mx-auto">Authorize Wallet</button>
+                <div className="glass-card text-center py-10">
+                  <Wallet className="w-6 h-6 mx-auto mb-3 text-primary opacity-40" />
+                  <h4 className="text-sm font-bold mb-1">Authorization Required</h4>
+                  <p className="text-[10px] text-gray-500 mb-6">Connect your wallet to start the protocol</p>
+                  <button onClick={() => connect({ connector: injected() })} className="btn-primary py-2 px-8 text-[10px] uppercase">Authorize Now</button>
                 </div>
-              ) : userTaskIds?.length === 0 ? (
-                <div className="glass-card p-24 text-center border-dashed border-2 bg-transparent">
-                  <Clock className="w-12 h-12 text-gray-700 mx-auto mb-8" />
-                  <h4 className="text-2xl font-black mb-3 text-gray-400 uppercase tracking-tight">No Commitments</h4>
+              ) : !userTaskIds || userTaskIds.length === 0 ? (
+                <div className="glass-card text-center py-10 opacity-50">
+                  <Clock className="w-6 h-6 mx-auto mb-3 text-gray-600" />
+                  <p className="text-[10px] uppercase font-bold tracking-widest">No active commitments</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {[...userTaskIds || []].reverse().map(id => (
-                    <TaskItem key={id.toString()} id={id} searchQuery={searchQuery} notify={notify} refetchAll={() => { refetchIds(); refetchBalance(); }} />
+                <div className="space-y-3">
+                  {[...userTasks || []].reverse().map(task => (
+                    <TaskItem 
+                      key={task.id.toString()} 
+                      id={task.id}
+                      initialTask={task} 
+                      searchQuery={searchQuery} 
+                      notify={notify} 
+                      refetchAll={() => { refetchIds(); refetchTasks(); refetchBalance(); }} 
+                    />
                   ))}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="lg:col-span-4 space-y-8 sticky top-10 h-fit">
-            <TaskForm 
-              description={description} 
-              setDescription={setDescription} 
-              deadline={deadline} 
-              setDeadline={setDeadline} 
-              handleCreateTask={handleCreateTask} 
-              isConnected={isConnected} 
-              isTxPending={isTxPending} 
-              isConfirming={isConfirming} 
-            />
+          <aside className="lg:col-span-4">
+            <div className="sticky top-20">
+              <TaskForm 
+                description={description} 
+                setDescription={setDescription} 
+                deadline={deadline} 
+                setDeadline={setDeadline} 
+                stakeAmount={stakeAmount}
+                setStakeAmount={setStakeAmount}
+                handleCreateTask={handleCreateTask} 
+                isConnected={isConnected} 
+                isTxPending={isTxPending} 
+                isConfirming={isConfirming} 
+              />
+              
+              <div className="mt-6 glass-card p-4 border-primary/10">
+                <h4 className="text-[10px] font-black uppercase tracking-widest mb-3 opacity-50">System Logs</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px]">
+                    <span className="opacity-40 uppercase">Protocol Version</span>
+                    <span className="font-bold text-primary">v3.1.0-STABLE</span>
+                  </div>
+                  <div className="flex justify-between text-[9px]">
+                    <span className="opacity-40 uppercase">Network</span>
+                    <span className="font-bold text-white uppercase">Base Sepolia</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      <footer className="container mt-auto py-6 border-t border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-[9px]">
+          <div className="flex gap-6 uppercase font-bold tracking-widest">
+            <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer" className="opacity-40 hover:opacity-100 transition-opacity">Smart Contract</a>
+            <a href={`https://sepolia.basescan.org/address/${MOCK_USDC_ADDRESS}`} target="_blank" rel="noreferrer" className="opacity-40 hover:opacity-100 transition-opacity">Token Audit</a>
           </div>
-        </main>
-      </div>
+          <p className="opacity-20 uppercase font-black tracking-widest">Proprietary Protocol • 2026</p>
+        </div>
+      </footer>
     </div>
   )
 }

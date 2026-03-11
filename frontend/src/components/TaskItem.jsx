@@ -24,19 +24,22 @@ import {
   MOCK_USDC_ABI
 } from '../constants'
 
-export const TaskItem = ({ id, refetchAll, searchQuery, notify }) => {
+export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) => {
   const { address } = useAccount()
   const { writeContract, data: hash, isPending: isTxPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
 
   const [stakeAmount, setStakeAmount] = useState('10')
 
-  const { data: task, refetch: refetchTask } = useReadContract({
+  const { data: fetchedTask, refetch: refetchTask } = useReadContract({
     address: STAKE_TO_DONE_ADDRESS,
     abi: STAKE_TO_DONE_ABI,
     functionName: 'tasks',
-    args: [id]
+    args: [id],
+    query: { enabled: !initialTask }
   })
+
+  const task = initialTask || fetchedTask
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: MOCK_USDC_ADDRESS,
@@ -103,65 +106,97 @@ export const TaskItem = ({ id, refetchAll, searchQuery, notify }) => {
     writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'claimExpiredTask', args: [BigInt(taskId)] })
   }
 
+  const formattedAmount = isStaked ? formatUnits(amount, 18) : stakeAmount;
+  
   return (
-    <div className={`glass-card p-8 flex flex-col md:flex-row items-stretch md:items-center gap-8 group transition-all duration-500 overflow-hidden relative ${completed ? 'border-l-4 border-l-emerald-500 bg-emerald-500/[0.02]' : claimed ? 'border-l-4 border-l-red-500 bg-red-500/[0.02]' : isStaked ? 'border-l-4 border-l-amber-500 bg-amber-500/[0.02]' : 'border-l-4 border-l-indigo-500 bg-indigo-500/[0.02]'}`}>
-      <div className="flex-1 relative z-10 text-left">
-        <div className="flex flex-wrap items-center gap-3 mb-5">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-gray-500">ID #{taskId.toString()}</span>
+    <div className={`glass-card p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 shimmer ${completed ? 'status-success' : claimed ? 'status-error' : isStaked ? 'status-warning' : 'status-dim'}`}>
+      <div className="flex-1 relative-z-10 text-left">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          <span className="status-badge status-dim">PROTOCOL ID #{taskId.toString()}</span>
           {completed ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[10px] font-black uppercase tracking-widest">
-              <CheckCircle className="w-3.5 h-3.5" /> Mission Verified
+            <div className="status-badge status-success shadow-success">
+              <CheckCircle className="w-4 h-4" /> SUCCESS • FUNDS RECLAIMED
             </div>
           ) : claimed ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-[10px] font-black uppercase tracking-widest">
-              <Flame className="w-3.5 h-3.5" /> Burned
+            <div className="status-badge status-error shadow-error">
+              <Flame className="w-4 h-4" /> FAILURE • ASSETS BURNED
             </div>
           ) : isStaked ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 text-[10px] font-black uppercase tracking-widest">
-              <ShieldCheck className="w-3.5 h-3.5 animate-pulse" /> Active Resolve
+            <div className="status-badge status-warning shadow-warning">
+              <ShieldCheck className="w-4 h-4 animate-pulse" /> ACTIVE RESOLVE • LOCKED
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-400 text-[10px] font-black uppercase tracking-widest">
-              <Zap className="w-3.5 h-3.5" /> Pending Stake
+            <div className="status-badge status-dim shadow-premium">
+              <Zap className="w-4 h-4" /> INITIATED • AWAITING STAKE
             </div>
           )}
         </div>
-        <h3 className="text-3xl font-black text-white mb-4 tracking-tight group-hover:text-indigo-400 transition-colors uppercase font-heading">{description}</h3>
-        <div className="flex flex-wrap items-center gap-8">
-          <div className="flex items-center gap-3">
-            <Clock className="w-4 h-4 text-indigo-500" />
+        
+        <h3 className="text-xl sm:text-2xl font-black text-white mb-4 tracking-tight uppercase leading-tight">{description}</h3>
+        
+        <div className="flex flex-wrap items-center gap-10">
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-primary border border-white/5">
+              <Clock className="w-4 h-4" />
+            </div>
             <div>
-              <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Deadline</div>
-              <div className="text-xs font-bold text-gray-400">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
+              <div className="label-mini mb-1">Time Horizon</div>
+              <div className="text-sm font-bold text-gray-300">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Coins className="w-4 h-4 text-amber-500" />
+          <div className="flex items-center gap-4">
+            <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-amber-400 border border-white/5">
+              <Coins className="w-4 h-4" />
+            </div>
             <div>
-              <div className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-0.5">Asset</div>
-              <div className="text-xs font-bold text-gray-200">{isStaked ? formatUnits(amount, 18) : stakeAmount} <span className="text-[10px] font-black text-gray-600 ml-1">USDC</span></div>
+              <div className="label-mini mb-1">Staked Asset</div>
+              <div className="text-sm font-black text-white">
+                {formattedAmount} <span className="text-[10px] text-indigo-400">USDC</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="flex items-stretch md:items-center gap-4 w-full md:w-auto relative z-10">
+
+      <div className="flex items-center gap-6 relative-z-10">
         {!completed && !claimed && (
           <>
             {isStaked ? (
-              <button onClick={handleAction} disabled={isTxPending || isConfirming || isExpired} className="h-16 px-8 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl disabled:opacity-30">
-                {isConfirming ? '...' : isTxPending ? '...' : 'Settle'} <Trophy className="w-5 h-5" />
+              <button 
+                onClick={handleAction} 
+                disabled={isTxPending || isConfirming || isExpired} 
+                className="h-12 px-8 bg-emerald-600 hover:bg-emerald-500 btn-primary shadow-success text-xs"
+              >
+                {isConfirming ? 'VERIFYING...' : isTxPending ? 'SENDING...' : 'RECLAIM ASSETS'} <Trophy className="w-4 h-4 ml-2" />
               </button>
             ) : (
-              <div className="flex items-center glass-card bg-black/40 border-white/10 p-1 rounded-2xl">
-                <input type="number" value={stakeAmount} onChange={(e) => setStakeAmount(e.target.value)} className="w-20 bg-transparent text-center font-black focus:outline-none text-indigo-400" />
-                <button onClick={handleAction} disabled={isTxPending || isConfirming} className="h-12 px-6 rounded-xl font-black text-xs uppercase tracking-widest bg-indigo-600 hover:bg-indigo-500 text-white transition-all">
-                  {needsApproval ? 'Authorize' : 'Lock'}
+              <div className="flex items-center glass-card p-2 rounded-2xl shadow-premium">
+                <div className="px-6 flex flex-col">
+                  <span className="label-mini">Amount</span>
+                  <input 
+                    type="number" 
+                    value={stakeAmount} 
+                    onChange={(e) => setStakeAmount(e.target.value)} 
+                    className="w-20 bg-transparent text-xl font-black outline-none text-indigo-400" 
+                  />
+                </div>
+                <button 
+                  onClick={handleAction} 
+                  disabled={isTxPending || isConfirming} 
+                  className="h-10 px-6 btn-primary text-xs"
+                >
+                  {needsApproval ? 'AUTHORIZE' : 'LOCK STAKE'}
                 </button>
               </div>
             )}
             {isExpired && isStaked && (
-              <button onClick={handleClaim} disabled={isTxPending} className="h-16 w-16 flex items-center justify-center rounded-2xl glass-card bg-red-600/10 border-red-600/20 text-red-500 hover:bg-red-600 hover:text-white transition-all">
-                <Flame className="w-6 h-6" />
+              <button 
+                onClick={handleClaim} 
+                disabled={isTxPending || isConfirming} 
+                className="h-12 w-12 flex items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all animate-pulse"
+                title="Protocol Burn"
+              >
+                <Flame className="w-5 h-5" />
               </button>
             )}
           </>

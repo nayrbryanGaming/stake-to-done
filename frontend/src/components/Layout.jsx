@@ -1,45 +1,59 @@
-import { Zap, Bell } from 'lucide-react'
+import { Zap, Bell, ExternalLink } from 'lucide-react'
+import { formatUnits } from 'viem'
+import { STAKE_TO_DONE_ADDRESS } from '../constants'
 
-export const Header = ({ address, isConnected, connect, disconnect, injected, isWrongChain, switchChain, baseSepolia }) => (
-  <nav className="flex justify-between items-center py-8 mb-12 animate-in" style={{ animationDelay: '0.1s' }}>
-    <div className="flex items-center gap-4">
-      <div className="w-14 h-14 btn-primary rounded-2xl flex items-center justify-center shadow-indigo-500/40">
-        <Zap className="w-8 h-8 text-white fill-white animate-pulse" />
-      </div>
-      <div className="text-left">
-        <h1 className="text-3xl font-black font-heading tracking-tighter text-white leading-none">STAKE-TO-DONE</h1>
-        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mt-1">Proof of Commitment • v1.1.0</p>
-      </div>
-    </div>
-
-    <div className="flex items-center gap-6">
-      {isConnected ? (
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex flex-col items-end text-right">
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Staking Wallet</span>
-            <span className="text-sm font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
-            </span>
-          </div>
-          <button
-            onClick={() => disconnect()}
-            className="w-12 h-12 glass-card flex items-center justify-center text-gray-500 hover:text-red-400 hover:border-red-500/30 transition-all active:scale-90"
-            title="Disconnect"
-          >
-            <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-          </button>
+export const Header = ({ address, isConnected, connect, disconnect, injected, isWrongChain, switchChain, baseSepolia, usdcBalance }) => {
+  const formattedBalance = usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
+  
+  return (
+    <nav className="flex flex-col sm:flex-row justify-between items-center py-4 gap-4">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+          <Zap className="w-4 h-4 text-white" />
         </div>
-      ) : (
-        <button
-          onClick={() => connect({ connector: injected() })}
-          className="btn-primary h-14 px-8 rounded-2xl font-black flex items-center gap-3 text-white group"
-        >
-          <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform shadow-xl shadow-indigo-600/30" /> Connect Protocol
-        </button>
-      )}
-    </div>
-  </nav>
-)
+        <div className="text-left">
+          <h1 className="text-sm font-black tracking-widest text-white m-0 uppercase">STAKE-TO-DONE</h1>
+          <div className="flex items-center gap-3">
+            <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary/30">Protocol Code</a>
+            <a href={`https://sepolia.basescan.org/address/${MOCK_USDC_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary/30">Asset Explorer</a>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {isConnected ? (
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <span className="label-mini mb-0 text-[8px]">Protocol Assets</span>
+              <span className="text-sm font-black text-white">
+                {formattedBalance} <span className="text-primary text-[10px]">USDC</span>
+              </span>
+            </div>
+            <div className="px-3 py-1.5 glass-card rounded-lg flex flex-col items-center border-primary/20">
+              <span className="label-mini text-[8px] mb-0 opacity-50">Authorized</span>
+              <span className="text-[10px] font-mono font-bold text-white">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </span>
+            </div>
+            <button
+              onClick={() => disconnect()}
+              className="btn-glass border-rose-500/20 text-rose-500 hover:bg-rose-500/10 font-bold text-[9px] uppercase tracking-widest px-3 py-1"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => connect({ connector: injected() })}
+            className="btn-primary py-2 px-6 text-[10px] uppercase tracking-widest"
+          >
+            Authorize Protocol
+          </button>
+        )}
+      </div>
+    </nav>
+  )
+}
 
 export const Toast = ({ showNotification, notificationMsg }) => (
   showNotification && (

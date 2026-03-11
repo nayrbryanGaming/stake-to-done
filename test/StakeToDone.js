@@ -84,4 +84,20 @@ describe("StakeToDone", function () {
         expect(task.claimed).to.be.true;
         expect(await mockUSDC.balanceOf(treasury.address)).to.equal(initialTreasuryBalance + STAKE_AMOUNT);
     });
+
+    it("Should create and stake in one transaction", async function () {
+        const latestTime = await time.latest();
+        const deadline = BigInt(latestTime) + BigInt(3600);
+        
+        await expect(stakeToDone.connect(user).createAndStakeTask("Finish the MVP", deadline, STAKE_AMOUNT))
+            .to.emit(stakeToDone, "TaskCreated")
+            .withArgs(BigInt(1), user.address, "Finish the MVP", deadline)
+            .to.emit(stakeToDone, "TaskStaked")
+            .withArgs(BigInt(1), user.address, STAKE_AMOUNT);
+
+        const task = await stakeToDone.tasks(1);
+        expect(task.description).to.equal("Finish the MVP");
+        expect(task.stakeAmount).to.equal(STAKE_AMOUNT);
+        expect(await mockUSDC.balanceOf(await stakeToDone.getAddress())).to.equal(STAKE_AMOUNT);
+    });
 });

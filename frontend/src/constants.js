@@ -1,5 +1,5 @@
-export const STAKE_TO_DONE_ADDRESS = "0x37B1152040073EAdcC76609048c07C019A3F7789";
-export const MOCK_USDC_ADDRESS = "0xBBa5c220330a4FB2d56505CD90F5ebBb6aD84985";
+export const STAKE_TO_DONE_ADDRESS = "0xADb03cC144273394b014FC1a959101268a5A2453";
+export const MOCK_USDC_ADDRESS = "0xc85bA2443D394B3d52671f30fc1126AEd8fbE511";
 
 export const STAKE_TO_DONE_ABI = [
     {
@@ -8,6 +8,17 @@ export const STAKE_TO_DONE_ABI = [
             { "internalType": "uint256", "name": "_deadline", "type": "uint256" }
         ],
         "name": "createTask",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "internalType": "string", "name": "_description", "type": "string" },
+            { "internalType": "uint256", "name": "_deadline", "type": "uint256" },
+            { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+        ],
+        "name": "createAndStakeTask",
         "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -54,6 +65,30 @@ export const STAKE_TO_DONE_ABI = [
             { "internalType": "uint256", "name": "deadline", "type": "uint256" },
             { "internalType": "bool", "name": "completed", "type": "bool" },
             { "internalType": "bool", "name": "claimed", "type": "bool" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "internalType": "uint256[]", "name": "_ids", "type": "uint256[]" }
+        ],
+        "name": "getTaskDetails",
+        "outputs": [
+            {
+                "components": [
+                    { "internalType": "uint256", "name": "id", "type": "uint256" },
+                    { "internalType": "address", "name": "user", "type": "address" },
+                    { "internalType": "string", "name": "description", "type": "string" },
+                    { "internalType": "uint256", "name": "stakeAmount", "type": "uint256" },
+                    { "internalType": "uint256", "name": "deadline", "type": "uint256" },
+                    { "internalType": "bool", "name": "completed", "type": "bool" },
+                    { "internalType": "bool", "name": "claimed", "type": "bool" }
+                ],
+                "internalType": "struct StakeToDone.Task[]",
+                "name": "",
+                "type": "tuple[]"
+            }
         ],
         "stateMutability": "view",
         "type": "function"

@@ -44,6 +44,7 @@ contract StakeToDone is ReentrancyGuard, Ownable {
     event TaskStaked(uint256 indexed taskId, address indexed user, uint256 amount);
     event TaskCompleted(uint256 indexed taskId, address indexed user);
     event TaskFailed(uint256 indexed taskId, address indexed user, uint256 amount);
+    event TreasuryUpdated(address indexed oldTreasury, address indexed newTreasury);
 
     constructor(address _stakingToken, address _treasury) Ownable(msg.sender) {
         if (_stakingToken == address(0) || _treasury == address(0)) revert ZeroAddress();
@@ -70,6 +71,34 @@ contract StakeToDone is ReentrancyGuard, Ownable {
 
         userTasks[msg.sender].push(taskCounter);
         emit TaskCreated(taskCounter, msg.sender, _description, _deadline);
+        return taskCounter;
+    }
+
+    /**
+     * @dev Create and stake tokens for a task in one transaction.
+     */
+    function createAndStakeTask(string memory _description, uint256 _deadline, uint256 _amount) external nonReentrant returns (uint256) {
+        if (_deadline <= block.timestamp) revert InvalidDeadline();
+        if (_amount == 0) revert NoStakeFound();
+
+        taskCounter++;
+        tasks[taskCounter] = Task({
+            id: taskCounter,
+            user: msg.sender,
+            description: _description,
+            stakeAmount: _amount,
+            deadline: _deadline,
+            completed: false,
+            claimed: false
+        });
+
+        userTasks[msg.sender].push(taskCounter);
+        
+        if (!stakingToken.transferFrom(msg.sender, address(this), _amount)) revert TransferFailed();
+
+        emit TaskCreated(taskCounter, msg.sender, _description, _deadline);
+        emit TaskStaked(taskCounter, msg.sender, _amount);
+        
         return taskCounter;
     }
 
@@ -130,7 +159,9 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      */
     function setTreasury(address _newTreasury) external onlyOwner {
         if (_newTreasury == address(0)) revert ZeroAddress();
+        address oldTreasury = treasury;
         treasury = _newTreasury;
+        emit TreasuryUpdated(oldTreasury, _newTreasury);
     }
 
     /**
@@ -138,6 +169,17 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      */
     function getUserTasks(address _user) external view returns (uint256[] memory) {
         return userTasks[_user];
+    }
+
+    /**
+     * @dev Batch get task details for a list of IDs.
+     */
+    function getTaskDetails(uint256[] calldata _ids) external view returns (Task[] memory) {
+        Task[] memory details = new Task[](_ids.length);
+        for (uint256 i = 0; i < _ids.length; i++) {
+            details[i] = tasks[_ids[i]];
+        }
+        return details;
     }
 }
 

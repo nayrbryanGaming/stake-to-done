@@ -1,48 +1,65 @@
 import { Zap, LayoutDashboard, ArrowRight } from 'lucide-react'
 
-export const TaskForm = ({ description, setDescription, deadline, setDeadline, handleCreateTask, isConnected, isTxPending, isConfirming }) => (
-  <div className="glass-card p-10 bg-indigo-600/[0.03] border-indigo-500/20 animate-in" style={{ animationDelay: '0.5s' }}>
-    <div className="flex items-center justify-between mb-10">
-      <h3 className="text-2xl font-black flex items-center gap-3 font-heading text-white text-left">
-        <Zap className="text-indigo-500 fill-indigo-500/20" /> New Goal
+export const TaskForm = ({ description, setDescription, deadline, setDeadline, stakeAmount, setStakeAmount, handleCreateTask, isConnected, isTxPending, isConfirming }) => (
+  <div className="glass-card p-6 sm:p-8 bg-indigo-500-10 border-indigo-500-20 animate-in" style={{ animationDelay: '0.5s' }}>
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="text-base font-black flex items-center gap-2 text-white">
+        <Zap className="w-4 h-4 text-primary" /> New Goal
       </h3>
-      <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center">
-        <LayoutDashboard className="w-4 h-4 text-gray-500" />
+      <div className="w-8 h-8 rounded-full border-white/5 flex items-center justify-center opacity-40">
+        <LayoutDashboard className="w-3.5 h-3.5" />
       </div>
     </div>
 
     <form onSubmit={handleCreateTask} className="space-y-8 text-left">
       <div className="space-y-3">
-        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-2">Commitment Description</label>
+        <label className="label-mini">Commitment Description</label>
         <input
           type="text"
           required
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g., SHIP MVP PROTOCOL"
-          className="w-full h-16 bg-black/40 border border-white/10 rounded-2xl px-6 text-white font-bold placeholder:text-gray-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+          className="input-field"
         />
       </div>
 
       <div className="space-y-3">
-        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] ml-2">Execution Deadline</label>
+        <label className="label-mini">Execution Deadline</label>
         <input
           type="datetime-local"
           required
           value={deadline}
           onChange={(e) => setDeadline(e.target.value)}
-          className="w-full h-16 bg-black/40 border border-white/10 rounded-2xl px-6 text-white font-bold focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all [color-scheme:dark]"
+          className="input-field"
+          style={{ colorScheme: 'dark' }}
         />
       </div>
 
-      <div className="pt-4">
+      <div className="space-y-3">
+        <label className="label-mini">Commitment Stake (USDC)</label>
+        <div className="relative">
+          <input
+            type="number"
+            required
+            step="0.01"
+            min="0"
+            value={stakeAmount}
+            onChange={(e) => setStakeAmount(e.target.value)}
+            placeholder="e.g., 10.00"
+            className="input-field"
+          />
+        </div>
+      </div>
+
+      <div className="pt-2">
         <button
           type="submit"
           disabled={!isConnected || isTxPending || isConfirming}
-          className="w-full h-20 btn-primary text-white font-black rounded-[24px] text-lg flex items-center justify-center gap-3 group disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full btn-primary py-3 text-sm"
         >
-          <span>{isConfirming ? 'Finalizing...' : 'Initiate Commitment'}</span>
-          <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
+          <span>{isConfirming ? 'Finalizing...' : 'Lock Commitment'}</span>
+          <ArrowRight className="w-4 h-4 ml-2" />
         </button>
       </div>
     </form>
