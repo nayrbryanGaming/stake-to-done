@@ -14,14 +14,14 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
         <div className="text-left">
           <div className="flex items-center gap-2 mb-0.5">
             <h1 className="text-sm font-black tracking-widest text-white m-0 uppercase line-height-1">STAKE-TO-DONE</h1>
-            <div className="flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
-              <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-[7px] font-black text-emerald-500 uppercase tracking-tighter">Live Sync</span>
+            <div className="flex items-center gap-1 bg-success-dim px-1.5 py-0.5 rounded-full">
+              <div className="w-1 h-1 bg-success rounded-full animate-pulse"></div>
+              <span className="text-[7px] font-black text-success uppercase tracking-tighter">Protocol Live</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary/30">Protocol Code</a>
-            <a href={`https://sepolia.basescan.org/address/${MOCK_USDC_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary/30">Asset Explorer</a>
+            <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary">Protocol Logic</a>
+            <a href={`https://sepolia.basescan.org/address/${MOCK_USDC_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary">Asset Verification</a>
           </div>
         </div>
       </div>
@@ -43,9 +43,9 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
             </div>
             <button
               onClick={() => disconnect()}
-              className="btn-glass border-rose-500/20 text-rose-500 hover:bg-rose-500/10 font-bold text-[9px] uppercase tracking-widest px-3 py-1"
+              className="btn-glass border-error-dim text-error hover:bg-error-dim font-bold text-[9px] uppercase tracking-widest px-3 py-1"
             >
-              Sign Out
+              Terminate Session
             </button>
           </div>
         ) : (
@@ -64,9 +64,9 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
 export const Toast = ({ showNotification, notificationMsg }) => (
   showNotification && (
     <div className="fixed top-6 right-6 z-50 animate-in">
-      <div className="glass-card px-6 py-4 flex items-center gap-3 border-indigo-500/50 shadow-2xl shadow-indigo-500/20">
-        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
-          <Bell className="w-4 h-4 text-indigo-400" />
+      <div className="glass-card px-6 py-4 flex items-center gap-3 border-primary-dim shadow-premium">
+        <div className="w-8 h-8 rounded-full bg-primary-dim flex items-center justify-center">
+          <Bell className="w-4 h-4 text-primary" />
         </div>
         <p className="text-sm font-bold text-white">{notificationMsg}</p>
       </div>

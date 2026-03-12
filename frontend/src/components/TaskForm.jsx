@@ -13,19 +13,19 @@ export const TaskForm = ({ description, setDescription, deadline, setDeadline, s
 
     <form onSubmit={handleCreateTask} className="space-y-8 text-left">
       <div className="space-y-3">
-        <label className="label-mini">Commitment Description</label>
+        <label className="label-mini">Objective Definition</label>
         <input
           type="text"
           required
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="e.g., SHIP MVP PROTOCOL"
-          className="input-field"
+          placeholder="Enter commitment objective..."
+          className="input-field border-primary-dim"
         />
       </div>
 
       <div className="space-y-3">
-        <label className="label-mini">Execution Deadline</label>
+        <label className="label-mini">Resolution Horizon</label>
         <input
           type="datetime-local"
           required
@@ -37,7 +37,7 @@ export const TaskForm = ({ description, setDescription, deadline, setDeadline, s
       </div>
 
       <div className="space-y-3">
-        <label className="label-mini">Commitment Stake (USDC)</label>
+        <label className="label-mini">Staked liquidity (USDC)</label>
         <div className="relative">
           <input
             type="number"
@@ -46,8 +46,8 @@ export const TaskForm = ({ description, setDescription, deadline, setDeadline, s
             min="0"
             value={stakeAmount}
             onChange={(e) => setStakeAmount(e.target.value)}
-            placeholder="e.g., 10.00"
-            className="input-field"
+            placeholder="0.00"
+            className="input-field border-primary-dim"
           />
         </div>
       </div>
@@ -58,7 +58,7 @@ export const TaskForm = ({ description, setDescription, deadline, setDeadline, s
           disabled={!isConnected || isTxPending || isConfirming}
           className="w-full btn-primary py-3 text-sm"
         >
-          <span>{isConfirming ? 'Finalizing...' : 'Lock Commitment'}</span>
+          <span>{isConfirming ? 'Finalizing...' : 'Initialize Protocol'}</span>
           <ArrowRight className="w-4 h-4 ml-2" />
         </button>
       </div>

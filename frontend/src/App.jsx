@@ -223,10 +223,9 @@ function App() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Filter logs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-field pl-9 h-9 text-xs w-full sm:w-64"
+                  className="input-field border-primary-dim pl-9 h-9 text-xs w-full sm:w-64"
                 />
               </div>
             </div>
@@ -235,8 +234,8 @@ function App() {
               {!isConnected ? (
                 <div className="glass-card text-center py-10">
                   <Wallet className="w-6 h-6 mx-auto mb-3 text-primary opacity-40" />
-                  <h4 className="text-sm font-bold mb-1">Authorization Required</h4>
-                  <p className="text-[10px] text-gray-500 mb-6">Connect your wallet to start the protocol</p>
+                  <h4 className="text-sm font-black mb-1 font-outfit uppercase tracking-widest text-white">System Access Required</h4>
+                  <p className="text-[10px] text-dim mb-6 uppercase font-bold">Protocol authorization required to initialize commitments</p>
                   <button onClick={() => connect({ connector: injected() })} className="btn-primary py-2 px-8 text-[10px] uppercase">Authorize Now</button>
                 </div>
               ) : displayTasks.length === 0 ? (
@@ -279,7 +278,7 @@ function App() {
               />
               
               <div className="mt-6 glass-card p-6 border-primary/10">
-                <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-50">Discipline Score</h4>
+                <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 text-dim">Commitment Velocity</h4>
                 <div className="flex items-end gap-2 mb-6">
                   <span className="text-4xl font-black text-gradient font-outfit">{stats.successRate}%</span>
                   <span className="text-[10px] uppercase font-bold text-gray-500 mb-1.5 font-outfit">Ratio</span>
@@ -307,8 +306,8 @@ function App() {
                 <h4 className="text-[10px] font-black uppercase tracking-widest mb-3 opacity-50">System Logs</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[9px] font-outfit">
-                    <span className="opacity-40 uppercase">Protocol Version</span>
-                    <span className="font-bold text-gradient">v4.1.0-PLATINUM</span>
+                    <span className="text-dim uppercase">Engine Version</span>
+                    <span className="font-bold text-gradient">v5.1.0-ELITE</span>
                   </div>
                   <div className="flex justify-between text-[9px]">
                     <span className="opacity-40 uppercase">Network</span>

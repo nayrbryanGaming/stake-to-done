@@ -1,7 +1,6 @@
 /* 
  * STAKE-TO-DONE PROTOCOL - PLATINUM LUXURY DESIGN SYSTEM
- * 100% VANILLA CSS - VERSION 4.1.0 (Zero Cacat Edition)
- */
+ * 100% VANILLA CSS - VERSION 5.1.0 (Ultimate Zero-Cacat Edition)
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap');
 
@@ -294,10 +293,32 @@ h1, h2, h3, h4, .font-outfit {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(3, 3, 3, 0.7);
-    backdrop-filter: blur(15px);
+    background: rgba(3, 3, 3, 0.8);
+    backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--color-border);
 }
+
+/* Elite Utilities */
+.text-primary { color: var(--color-primary); }
+.text-secondary { color: var(--color-secondary); }
+.text-success { color: var(--color-success); }
+.text-error { color: var(--color-error); }
+.text-warning { color: var(--color-warning); }
+.text-dim { color: var(--color-text-dim); }
+.text-white { color: #ffffff; }
+
+.bg-success-dim { background: rgba(16, 185, 129, 0.1); }
+.bg-error-dim { background: rgba(244, 63, 94, 0.15); }
+.bg-primary-dim { background: rgba(99, 102, 241, 0.1); }
+.bg-secondary-dim { background: rgba(168, 85, 247, 0.1); }
+
+.border-primary-dim { border-color: rgba(99, 102, 241, 0.2); }
+.border-secondary-dim { border-color: rgba(168, 85, 247, 0.2); }
+.border-error-dim { border-color: rgba(244, 63, 94, 0.2); }
+.border-success-dim { border-color: rgba(16, 185, 129, 0.2); }
+
+.line-height-1 { line-height: 1; }
+.decoration-primary { text-decoration-color: var(--color-primary); }
 
 /* Utilities */
 .w-full { width: 100%; }

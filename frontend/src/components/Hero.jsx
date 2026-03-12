@@ -31,13 +31,13 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
             <div className="text-lg font-black text-white font-outfit">
               {usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
             </div>
-            <div className="text-[9px] uppercase font-bold opacity-40 font-outfit tracking-widest">USDC LIQUIDITY</div>
+            <div className="text-[9px] uppercase font-bold opacity-40 font-outfit tracking-widest">Protocol Liquidity</div>
           </div>
         </div>
 
-        <button onClick={handleMint} className="btn-glass h-9 px-5 flex items-center border-primary/20 hover:border-primary/50">
+        <button onClick={handleMint} className="btn-glass h-9 px-5 flex items-center border-primary-dim hover:border-primary">
           <PlusCircle className="w-3.5 h-3.5 mr-2 text-primary" />
-          <span className="uppercase tracking-widest text-[8px] font-bold">Hydrate Wallet</span>
+          <span className="uppercase tracking-widest text-[8px] font-bold">Topup Liquidity</span>
         </button>
       </div>
     </div>
