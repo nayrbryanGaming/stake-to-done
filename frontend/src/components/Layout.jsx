@@ -8,15 +8,15 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
   return (
     <nav className="flex flex-col sm:flex-row justify-between items-center py-4 gap-4">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-          <Zap className="w-4 h-4 text-white" />
+        <div className="icon-widget w-12 h-12 bg-primary shadow-lg shadow-primary/30">
+          <Zap className="text-white" />
         </div>
         <div className="text-left">
-          <div className="flex items-center gap-2 mb-0.5">
-            <h1 className="text-sm font-black tracking-widest text-white m-0 uppercase line-height-1">STAKE-TO-DONE</h1>
-            <div className="flex items-center gap-1 bg-success-dim px-1.5 py-0.5 rounded-full">
-              <div className="w-1 h-1 bg-success rounded-full animate-pulse"></div>
-              <span className="text-[7px] font-black text-success uppercase tracking-tighter">Protocol Live</span>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-base font-black tracking-widest text-white m-0 uppercase line-height-1 font-outfit">STAKE-TO-DONE</h1>
+            <div className="flex items-center gap-2 bg-success-dim px-2 py-1 rounded-full border border-success/10">
+              <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></div>
+              <span className="text-[8px] font-black text-success uppercase tracking-wider">PROTOCOL ACTIVE</span>
             </div>
           </div>
           <div className="flex items-center gap-3">

@@ -109,8 +109,12 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
   const formattedAmount = isStaked ? formatUnits(amount, 18) : stakeAmount;
   
   return (
-    <div className={`glass-card p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 shimmer ${completed ? 'status-success' : claimed ? 'status-error' : isStaked ? 'status-warning' : 'status-dim'}`}>
-      <div className="flex-1 relative-z-10 text-left">
+    <div className={`glass-card p-8 items-center gap-10 hover:border-primary animation-pulse-slow ${completed ? 'status-success' : claimed ? 'status-error' : isStaked ? 'status-warning' : 'status-dim'}`}>
+      <div className="flex flex-col md:flex-row items-center gap-10">
+        <div className="icon-widget w-20 h-20 bg-white/5 border-white/10 flex-shrink-0 animate-bounce-slow">
+          <Zap className={`w-10 h-10 ${completed ? 'text-success' : claimed ? 'text-error' : 'text-primary'}`} />
+        </div>
+        <div className="flex-1 text-left">
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <span className="status-badge status-dim font-outfit">PROTOCOL ID #{taskId.toString()}</span>
           {completed ? (
@@ -140,8 +144,8 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <div className="label-mini mb-1 font-outfit">Time Horizon</div>
-              <div className="text-sm font-bold text-gray-300 font-outfit">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
+              <div className="label-mini mb-2 font-outfit text-xs">Resolution Horizon</div>
+              <div className="text-base font-black text-white font-outfit">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -149,9 +153,9 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
               <Coins className="w-4 h-4" />
             </div>
             <div>
-              <div className="label-mini mb-1 font-outfit">Staked Asset</div>
-              <div className="text-sm font-black text-white font-outfit">
-                {formattedAmount} <span className="text-[10px] text-gradient">USDC</span>
+              <div className="label-mini mb-2 font-outfit text-xs">Staked liquidity</div>
+              <div className="text-lg font-black text-white font-outfit">
+                {formattedAmount} <span className="text-xs text-gradient">USDC</span>
               </div>
             </div>
           </div>
@@ -203,5 +207,6 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
         )}
       </div>
     </div>
-  )
+  </div>
+)
 }

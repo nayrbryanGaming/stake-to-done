@@ -2,13 +2,13 @@ import { Zap, LayoutDashboard, ArrowRight } from 'lucide-react'
 
 export const TaskForm = ({ description, setDescription, deadline, setDeadline, stakeAmount, setStakeAmount, handleCreateTask, isConnected, isTxPending, isConfirming }) => (
   <div className="glass-card flex flex-col p-6 sm:p-8 border-primary/20 animate-in" style={{ animationDelay: '0.5s' }}>
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-base font-black flex items-center gap-2 text-white font-outfit">
-        <Zap className="w-4 h-4 text-primary" /> New Goal
+    <div className="flex items-center justify-between mb-8">
+      <h3 className="text-xl font-black flex items-center gap-4 text-white font-outfit">
+        <div className="icon-widget h-12 w-12 bg-primary/10">
+          <Zap className="text-primary" />
+        </div>
+        Initialize Goal
       </h3>
-      <div className="w-8 h-8 rounded-full border-white/5 flex items-center justify-center opacity-40">
-        <LayoutDashboard className="w-3.5 h-3.5" />
-      </div>
     </div>
 
     <form onSubmit={handleCreateTask} className="space-y-8 text-left">
@@ -56,10 +56,10 @@ export const TaskForm = ({ description, setDescription, deadline, setDeadline, s
         <button
           type="submit"
           disabled={!isConnected || isTxPending || isConfirming}
-          className="w-full btn-primary py-3 text-sm"
+          className="w-full btn-primary py-4 text-base shadow-premium"
         >
-          <span>{isConfirming ? 'Finalizing...' : 'Initialize Protocol'}</span>
-          <ArrowRight className="w-4 h-4 ml-2" />
+          <span>{isConfirming ? 'FINALIZING...' : 'START PROTOCOL'}</span>
+          <ArrowRight className="w-5 h-5 ml-3" />
         </button>
       </div>
     </form>

@@ -8,9 +8,9 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
     </div>
 
     <div className="relative-z-10 max-w-xl text-left">
-      <div className="hero-tag mb-4 flex items-center gap-2">
-        <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
-        <span className="text-[9px] uppercase font-bold tracking-widest text-primary opacity-80">v4.0.0 PERFECTION MVP</span>
+      <div className="flex items-center gap-3 mb-6 bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20">
+        <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
+        <span className="text-xs font-black tracking-widest text-primary uppercase">v6.0.0 ULTIMATE-ELITE</span>
       </div>
 
       <h2 className="text-2xl sm:text-4xl font-black mb-3 italic text-white uppercase tracking-tight leading-tight">
@@ -22,16 +22,16 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
         Premium decentralized commitment protocol. Settle your goals on-chain with verified stakes.
       </p>
 
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="glass-card bg-white/5 px-5 py-3 border-white/10 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-            <Coins className="w-4 h-4" />
+      <div className="flex flex-col md:flex-row gap-8 items-center">
+        <div className="glass-card bg-white/5 p-6 border-white/10 flex items-center gap-6 group hover:border-primary/50">
+          <div className="icon-widget shadow-primary/20 bg-primary/20 group-hover:scale-110">
+            <Coins className="text-white" />
           </div>
           <div>
-            <div className="text-lg font-black text-white font-outfit">
+            <div className="text-2xl font-black text-white font-outfit mb-1">
               {usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
             </div>
-            <div className="text-[9px] uppercase font-bold opacity-40 font-outfit tracking-widest">Protocol Liquidity</div>
+            <div className="text-xs uppercase font-bold text-dim font-outfit tracking-widest">Protocol Assets</div>
           </div>
         </div>
 
