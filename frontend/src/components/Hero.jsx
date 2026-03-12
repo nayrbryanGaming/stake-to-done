@@ -18,26 +18,27 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
         Stake Your <span className="text-gradient">Future</span>.
       </h2>
 
-      <p className="text-gray-400 text-xs sm:text-sm leading-relaxed mb-6 max-w-sm">
-        Premium decentralized commitment protocol. Settle your goals on-chain with verified stakes.
+      <p className="text-gray-400 text-base sm:text-lg leading-relaxed mb-10 max-w-lg font-medium opacity-70">
+        The definitive decentralized commitment protocol for high-performance builders. 
+        Secure your resolve on-chain with military-grade stakes.
       </p>
 
-      <div className="flex flex-col md:flex-row gap-8 items-center">
-        <div className="glass-card bg-white/5 p-6 border-white/10 flex items-center gap-6 group hover:border-primary/50">
-          <div className="icon-widget shadow-primary/20 bg-primary/20 group-hover:scale-110">
+      <div className="flex flex-col md:flex-row gap-12 items-center">
+        <div className="glass-card bg-white/5 p-8 border-white/10 flex items-center gap-10 group hover:border-primary/60 animate-float-pro shadow-premium">
+          <div className="icon-widget shadow-primary/40 bg-primary/20 group-hover:rotate-[15deg] transition-all">
             <Coins className="text-white" />
           </div>
           <div>
-            <div className="text-2xl font-black text-white font-outfit mb-1">
+            <div className="text-5xl font-black text-white font-outfit mb-3 tracking-tighter">
               {usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
             </div>
-            <div className="text-xs uppercase font-bold text-dim font-outfit tracking-widest">Protocol Assets</div>
+            <div className="text-sm uppercase font-black text-primary font-outfit tracking-[0.3em]">Protocol Treasury Assets</div>
           </div>
         </div>
 
-        <button onClick={handleMint} className="btn-glass h-9 px-5 flex items-center border-primary-dim hover:border-primary">
-          <PlusCircle className="w-3.5 h-3.5 mr-2 text-primary" />
-          <span className="uppercase tracking-widest text-[8px] font-bold">Topup Liquidity</span>
+        <button onClick={handleMint} className="btn-primary h-16 px-10 flex items-center border-primary-dim hover:scale-110 active:scale-95 transition-all">
+          <PlusCircle className="w-6 h-6 mr-3 text-white" />
+          <span className="uppercase tracking-[0.2em] text-sm font-black">Infuse Liquidity</span>
         </button>
       </div>
     </div>
