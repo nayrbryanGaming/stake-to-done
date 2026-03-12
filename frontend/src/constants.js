@@ -1,5 +1,6 @@
 export const STAKE_TO_DONE_ADDRESS = "0xADb03cC144273394b014FC1a959101268a5A2453";
-export const MOCK_USDC_ADDRESS = "0xc85bA2443D394B3d52671f30fc1126AEd8fbE511";
+export const USDC_ADDRESS = "0xc85bA2443D394B3d52671f30fc1126AEd8fbE511";
+export const USDC_DECIMALS = 6;
 
 export const STAKE_TO_DONE_ABI = [
     {
@@ -95,7 +96,7 @@ export const STAKE_TO_DONE_ABI = [
     }
 ];
 
-export const MOCK_USDC_ABI = [
+export const USDC_ABI = [
     {
         "inputs": [
             { "internalType": "address", "name": "spender", "type": "address" },

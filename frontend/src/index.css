@@ -1,6 +1,5 @@
-/* 
- * STAKE-TO-DONE PROTOCOL - GODLIKE LUXURY DESIGN SYSTEM
- * 100% VANILLA CSS - VERSION 7.0.0 (The Definitive Masterpiece)
+/*
+ * Stake-To-Done design system
  */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap');
 
@@ -17,9 +16,9 @@
     --color-error: #f43f5e;
     --color-warning: #fbbf24;
     
-    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-    --neon-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    --transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    --shadow-glow: 0 20px 80px -10px rgba(0, 0, 0, 0.9);
+    --neon-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
 }
 
 * {
@@ -61,15 +60,16 @@ h1, h2, h3, h4, .font-outfit {
 .text-xl { font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 950; letter-spacing: -0.03em; line-height: 1.1; }
 .text-2xl { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 950; letter-spacing: -0.05em; line-height: 1.05; }
 .text-4xl { font-size: clamp(4rem, 8vw, 6.5rem); font-weight: 950; letter-spacing: -0.06em; line-height: 1; }
-.text-7xl { font-size: 3.5rem; font-weight: 950; letter-spacing: -0.04em; }
+.text-7xl { font-size: clamp(5rem, 10vw, 8.5rem); font-weight: 950; letter-spacing: -0.06em; line-height: 0.9; }
 
 .text-gradient {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary), var(--color-accent));
+    background: linear-gradient(to right, #ffffff, var(--color-primary), #818cf8);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     background-size: 200% 200%;
     animation: gradientShift 5s ease infinite;
+    filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.4));
 }
 
 @keyframes gradientShift {
@@ -100,16 +100,17 @@ h1, h2, h3, h4, .font-outfit {
     .grid-layout { grid-template-columns: 2.2fr 1fr; }
 }
 
-/* --- GLASSMORPHISM & NEON --- */
+/* Standard Card Styles */
 .glass-card {
     background: var(--color-card);
     border: 1px solid var(--color-border);
     border-radius: 20px;
-    padding: 2rem;
-    backdrop-filter: blur(20px);
+    padding: 2.5rem;
+    backdrop-filter: blur(40px);
     transition: var(--transition);
     position: relative;
     box-shadow: var(--shadow-glow);
+    overflow: hidden;
 }
 
 .glass-card::before {
@@ -127,9 +128,9 @@ h1, h2, h3, h4, .font-outfit {
 }
 
 .glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-8px) scale(1.02) perspective(1000px) rotateX(2deg);
-    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-15px) scale(1.05) perspective(1500px) rotateX(3deg) rotateY(1deg);
+    box-shadow: 0 60px 100px -20px rgba(0, 0, 0, 0.7), 0 0 60px rgba(99, 102, 241, 0.3);
 }
 
 .shimmer {
@@ -162,7 +163,7 @@ h1, h2, h3, h4, .font-outfit {
     100% { transform: translateX(100%) rotate(45deg); }
 }
 
-/* --- BUTTONS --- */
+/* Standard Button Styles */
 .btn-primary {
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     color: white;
@@ -208,7 +209,7 @@ h1, h2, h3, h4, .font-outfit {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* --- INPUTS --- */
+/* Standard Form Element Styles */
 .input-field {
     width: 100%;
     background: rgba(0, 0, 0, 0.4);
@@ -237,7 +238,7 @@ h1, h2, h3, h4, .font-outfit {
     display: block;
 }
 
-/* --- STATUS & BADGES --- */
+/* Standard Status & Badge Styles */
 .status-badge {
     padding: 0.6rem 1.2rem;
     border-radius: 12px;
@@ -256,7 +257,7 @@ h1, h2, h3, h4, .font-outfit {
 .status-warning { background: rgba(251, 191, 36, 0.15); color: var(--color-warning); border: 1px solid rgba(251, 191, 36, 0.2); }
 .status-dim { background: rgba(255, 255, 255, 0.05); color: var(--color-text-dim); border: 1px solid rgba(255, 255, 255, 0.1); }
 
-/* --- BACKGROUNDS & ANIMATIONS --- */
+/* Standard Background & Animation Styles */
 .mesh-bg {
     position: fixed;
     inset: 0;
@@ -291,7 +292,7 @@ h1, h2, h3, h4, .font-outfit {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* GOD-SCALE WIDGETS */
+/* Standard Widget Styles */
 .icon-widget {
     width: 96px;
     height: 96px;
@@ -340,7 +341,7 @@ h1, h2, h3, h4, .font-outfit {
     padding: 0.5rem 0;
 }
 
-/* Elite Utilities */
+/* Standard Utility Styles */
 .text-primary { color: var(--color-primary); }
 .text-secondary { color: var(--color-secondary); }
 .text-success { color: var(--color-success); }
@@ -362,7 +363,7 @@ h1, h2, h3, h4, .font-outfit {
 .line-height-1 { line-height: 1; }
 .decoration-primary { text-decoration-color: var(--color-primary); }
 
-/* Utilities */
+/* Standard Action Styles */
 .w-full { width: 100%; }
 .uppercase { text-transform: uppercase; }
 .italic { font-style: italic; }

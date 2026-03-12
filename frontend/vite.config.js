@@ -16,4 +16,18 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
+  build: {
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          wagmi: ['wagmi', 'viem'],
+          motion: ['framer-motion'],
+          query: ['@tanstack/react-query'],
+          icons: ['lucide-react'],
+        },
+      },
+    },
+  },
 })

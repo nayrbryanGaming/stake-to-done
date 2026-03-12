@@ -6,12 +6,14 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Custom Errors
-error Unauthorized();
 error InvalidDeadline();
+error InvalidDescription();
 error AlreadyStaked();
 error AlreadyCompleted();
 error AlreadyClaimed();
+error AlreadyProcessed();
 error NotYourTask();
+error TaskNotFound();
 error DeadlinePassed();
 error DeadlineNotReached();
 error NoStakeFound();
@@ -20,7 +22,7 @@ error ZeroAddress();
 
 /**
  * @title StakeToDone
- * @dev A commitment protocol where users stake tokens to finish tasks.
+ * @dev A decentralized protocol facilitating commitment through automated asset management.
  */
 contract StakeToDone is ReentrancyGuard, Ownable {
     IERC20 public immutable stakingToken;
@@ -56,6 +58,7 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      * @dev Create a new task with a description and deadline.
      */
     function createTask(string memory _description, uint256 _deadline) external returns (uint256) {
+        if (bytes(_description).length == 0) revert InvalidDescription();
         if (_deadline <= block.timestamp) revert InvalidDeadline();
 
         taskCounter++;
@@ -78,6 +81,7 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      * @dev Create and stake tokens for a task in one transaction.
      */
     function createAndStakeTask(string memory _description, uint256 _deadline, uint256 _amount) external nonReentrant returns (uint256) {
+        if (bytes(_description).length == 0) revert InvalidDescription();
         if (_deadline <= block.timestamp) revert InvalidDeadline();
         if (_amount == 0) revert NoStakeFound();
 
@@ -107,8 +111,11 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      */
     function stakeTask(uint256 _taskId, uint256 _amount) external nonReentrant {
         Task storage task = tasks[_taskId];
+        if (task.user == address(0)) revert TaskNotFound();
         if (task.user != msg.sender) revert NotYourTask();
         if (task.stakeAmount > 0) revert AlreadyStaked();
+        if (task.completed) revert AlreadyCompleted();
+        if (task.claimed) revert AlreadyClaimed();
         if (task.deadline <= block.timestamp) revert DeadlinePassed();
         if (_amount == 0) revert NoStakeFound();
 
@@ -123,10 +130,11 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      */
     function completeTask(uint256 _taskId) external nonReentrant {
         Task storage task = tasks[_taskId];
+        if (task.user == address(0)) revert TaskNotFound();
         if (task.user != msg.sender) revert NotYourTask();
         if (task.completed) revert AlreadyCompleted();
         if (task.claimed) revert AlreadyClaimed();
-        if (block.timestamp > task.deadline) revert DeadlinePassed();
+        if (block.timestamp >= task.deadline) revert DeadlinePassed();
         if (task.stakeAmount == 0) revert NoStakeFound();
 
         task.completed = true;
@@ -143,12 +151,13 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      */
     function claimExpiredTask(uint256 _taskId) external nonReentrant {
         Task storage task = tasks[_taskId];
-        require(!task.completed && !task.claimed, "Already processed");
-        require(block.timestamp > task.deadline, "Deadline not reached");
-        require(task.stakeAmount > 0, "No stake found");
+        if (task.user == address(0)) revert TaskNotFound();
+        if (task.completed || task.claimed) revert AlreadyProcessed();
+        if (block.timestamp < task.deadline) revert DeadlineNotReached();
+        if (task.stakeAmount == 0) revert NoStakeFound();
 
         task.claimed = true;
-        require(stakingToken.transfer(treasury, task.stakeAmount), "Transfer failed");
+        if (!stakingToken.transfer(treasury, task.stakeAmount)) revert TransferFailed();
 
         emit TaskFailed(_taskId, task.user, task.stakeAmount);
     }

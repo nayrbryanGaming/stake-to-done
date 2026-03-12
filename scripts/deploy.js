@@ -35,7 +35,7 @@ async function main() {
     const path = require("path");
     const addresses = {
         STAKE_TO_DONE_ADDRESS: stakeToDoneAddress,
-        MOCK_USDC_ADDRESS: mockUSDCAddress,
+        USDC_ADDRESS: mockUSDCAddress,
         TREASURY_ADDRESS: treasury,
         NETWORK: "Base Sepolia"
     };
@@ -50,14 +50,14 @@ async function main() {
     if (fs.existsSync(constantsPath)) {
         let content = fs.readFileSync(constantsPath, "utf8");
         content = content.replace(/export const STAKE_TO_DONE_ADDRESS = "0x[a-fA-F0-9]+";/g, `export const STAKE_TO_DONE_ADDRESS = "${stakeToDoneAddress}";`);
-        content = content.replace(/export const MOCK_USDC_ADDRESS = "0x[a-fA-F0-9]+";/g, `export const MOCK_USDC_ADDRESS = "${mockUSDCAddress}";`);
+        content = content.replace(/export const USDC_ADDRESS = "0x[a-fA-F0-9]+";/g, `export const USDC_ADDRESS = "${mockUSDCAddress}";`);
 
         // Safety fallback if regex fails to find the exact line (e.g. if I changed it slightly)
         if (!content.includes(stakeToDoneAddress)) {
             // Just prepend/replace at start if regex is too brittle
             const lines = content.split('\n');
             lines[0] = `export const STAKE_TO_DONE_ADDRESS = "${stakeToDoneAddress}";`;
-            lines[1] = `export const MOCK_USDC_ADDRESS = "${mockUSDCAddress}";`;
+            lines[1] = `export const USDC_ADDRESS = "${mockUSDCAddress}";`;
             content = lines.join('\n');
         }
 

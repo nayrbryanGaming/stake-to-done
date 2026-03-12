@@ -1,129 +1,124 @@
-# ⚡ STAKE-TO-DONE PROTOCOL (MVP)
+# Stake-To-Done Protocol
 
-> **"Loss Aversion as a Service."** Master your time, stake your resolve, and kill procrastination on the **Base Blockchain**.
+Decentralized productivity protocol on Base where users stake USDC for task commitments.
 
-Welcome to the **Stake-To-Done Protocol** — an ultra-premium, decentralized commitment protocol built for high-performance builders. By putting "skin in the game," you leverage the psychological power of loss aversion to ensure your tasks are completed on time.
-
----
-
-## 1. 🏗 System Architecture
-
-The protocol is designed for maximum transparency and security. Here is how the components interact:
+## 1. System Architecture
 
 ```ascii
-                                   +-----------------------+
-                                   |      User Wallet      |
-                                   |   (MetaMask / Base)   |
-                                   +-----------+-----------+
-                                               |
-                                               | (Viem / Wagmi)
-                                               v
-+--------------------------+      +-----------+-----------+
-|    Premium Frontend      | <----+    React + Vite       |
-|  (Glassmorphism UI)      |      |   (On-chain Sync)     |
-+--------------------------+      +-----------+-----------+
-                                               |
-                                               | (JSON-RPC)
-                                               v
-+---------------------------------------------+-----------+
-|               Base Blockchain (Sepolia)                 |
-|                                                         |
-|  +---------------------+        +--------------------+  |
-|  |   StakeToDone.sol   | <----> |   MockUSDC (ERC20) |  |
-|  | (Protocol Core)     |        | (Staking Asset)    |  |
-|  +---------------------+        +--------------------+  |
-+---------------------------------------------------------+
++------------------+          +---------------------------+
+| Browser + Wallet | <------> | React + Wagmi + Viem UI  |
+| (MetaMask)       |          | (frontend)               |
++--------+---------+          +------------+--------------+
+         |                                 |
+         | JSON-RPC                        | Contract calls
+         v                                 v
++----------------------------------------------------------+
+| Base Sepolia                                              |
+|  +----------------------+   +--------------------------+  |
+|  | StakeToDone.sol      |   | MockUSDC.sol (ERC-20)   |  |
+|  | - create task        |   | - 6 decimals            |  |
+|  | - stake              |   | - mint for testnet      |  |
+|  | - complete           |   +--------------------------+  |
+|  | - claim expired      |                                   |
+|  +----------------------+                                   |
++----------------------------------------------------------+
 ```
 
-### Components:
-*   **Smart Contract**: The source of truth. Handles task creation, locking/unlocking stakes, and burn logic.
-*   **Frontend**: A premium React dashboard with real-time on-chain synchronization.
-*   **Wallet Integration**: Secure connection via Wagmi, allowing users to interact with the protocol via MetaMask.
-*   **Token Logic**: Uses standard ERC-20 patterns (USDC) for staking and approvals.
+## 2. Smart Contract Code
 
----
+- Core contract: `contracts/StakeToDone.sol`
+- Mock staking token: `contracts/MockUSDC.sol`
 
-## 2. ⛓ Smart Contract Code
+Main rules:
+- `createTask`: description must not be empty, deadline must be future.
+- `stakeTask`: only task owner, one-time stake, before deadline.
+- `completeTask`: only owner, before deadline, returns staked tokens.
+- `claimExpiredTask`: after deadline, sends stake to treasury.
+- Reentrancy protected with `ReentrancyGuard`.
 
-The core logic resides in `StakeToDone.sol`.
+## 3. Frontend Implementation
 
-### Live Deployment Addresses (Base Sepolia):
-*   **StakeToDone**: `0xADb03cC144273394b014FC1a959101268a5A2453`
-*   **MockUSDC**: `0xc85bA2443D394B3d52671f30fc1126AEd8fbE511`
+- Stack: React + Vite + Wagmi + Viem
+- Main files:
+  - `frontend/src/App.jsx`
+  - `frontend/src/components/TaskForm.jsx`
+  - `frontend/src/components/TaskItem.jsx`
+  - `frontend/src/components/Layout.jsx`
+  - `frontend/src/components/Hero.jsx`
 
-### Key Functions:
-*   `createTask(string _desc, uint256 _deadline)`: Initiates a new commitment on-chain.
-*   `stakeTask(uint256 _taskId, uint256 _amount)`: Locks your USDC into the protocol escrow.
-*   `completeTask(uint256 _taskId)`: Verifies completion before deadline and returns funds.
-*   `claimExpiredTask(uint256 _taskId)`: Triggers the "Burn" (Treasury Transfer) if the deadline passes.
+Implemented UI features:
+- Connect/disconnect wallet
+- Create + stake task in one flow
+- Approve USDC when allowance is missing
+- Complete task before deadline
+- Claim expired task (funds go to treasury)
+- Live countdown per task
 
----
+## 4. Deployment Guide
 
-## 3. 🖥 Frontend Implementation
-
-The frontend is a **Premium Glassmorphism Dashboard** built with React + Vite.
-
-### Features:
-*   **Real-time Countdown**: Every task has a live ticking timer.
-*   **Live Sync Status**: Glow indicator showing real-time connectivity with Base Sepolia.
-*   **Proof Celebration**: High-fidelity confetti animations upon successful completion.
-*   **Mobile Optimized**: Responsive design for commitment on the go.
-
----
-
-## 4. 🚀 Deployment Guide
-
-Follow these steps to deploy your own instance:
-
-### Prerequisites:
-*   Node.js v20+
-*   A wallet with Base Sepolia ETH.
-
-### Steps:
-1.  **Clone the Repo**: `git clone https://github.com/nayrbryanGaming/stake-to-done.git`
-2.  **Install Deps**: `npm install && cd frontend && npm install`
-3.  **Config**: Update `.env` with your `PRIVATE_KEY`.
-4.  **Deploy Contracts**: `npx hardhat run scripts/deploy.js --network baseSepolia`
-5.  **Run Frontend**: `npm run dev` (inside `frontend` folder).
-
----
-
-## 5. 🧪 Testing
-
-We ensure 100% logic integrity via Hardhat unit tests.
-
-To run tests:
+1. Install dependencies:
 ```bash
-npx hardhat test
+npm install --workspaces=false
+npm --prefix frontend install
 ```
 
-### Tested Scenarios:
-*   [x] Task creation with valid deadlines.
-*   [x] Token staking and approval verification.
-*   [x] Fund recovery upon timely completion.
-*   [x] Protocol burn logic upon deadline expiration.
+2. Configure `.env` at project root:
+```bash
+BASE_SEPOLIA_RPC=https://sepolia.base.org
+PRIVATE_KEY=YOUR_PRIVATE_KEY
+TREASURY_ADDRESS=YOUR_TREASURY_ADDRESS
+```
 
----
+3. Deploy:
+```bash
+npm run deploy:base
+```
 
-## 🛡 6. Security Review
+4. Sync deployed addresses to frontend:
+- Script writes `addresses.json`
+- Script updates `frontend/src/constants.js` automatically
 
-Our self-audit processes cover:
-- **Re-entrancy Guard**: Secured via OpenZeppelin's `ReentrancyGuard`.
-- **Access Control**: Owner-only treasury management via `Ownable`.
-- **Integrity**: Deadlines are immutable once set, preventing manipulation.
-- **ERC-20 Patterns**: Handled with standard `TransferFrom` and `Allowance` checks.
+5. Run frontend:
+```bash
+npm --prefix frontend run dev
+```
 
----
+## 5. Testing
 
-## 📈 7. Future Improvements
+Run smart contract tests:
+```bash
+npm test
+```
 
-*   **Automation**: Chainlink Upkeeps to automatically trigger burns on failure.
-*   **Multi-Asset Staking**: Support for ETH, cbBTC, and native Base tokens.
-*   **Social Slashing**: Publicly share your commitment to Farcaster/Base ecosystems.
-*   **Account Abstraction**: Gasless task creation for smoother onboarding.
+Current test file:
+- `test/StakeToDone.js`
 
----
+Covered flows:
+- task creation
+- staking
+- complete before deadline
+- claim after deadline
+- create and stake in one tx
 
-**Built with resolve on the Base Network.**
-*Master your time. Stake your soul.*
-**MVP 101% Perfected. Zero Cacat. Zero Bugs.**
+## 6. Security Review
+
+Implemented controls:
+- Reentrancy guard on transfer functions
+- Explicit task existence checks
+- Deadline validation
+- Double-processing prevention (`completed/claimed`)
+- Owner-only treasury update
+- ERC-20 transfer return-value checks
+
+Operational notes:
+- Never commit real private keys to git.
+- Rotate leaked keys immediately.
+
+## 7. Improvements
+
+Recommended next iterations:
+- Add event indexing + pagination for task history
+- Add role-based treasury controls (multisig)
+- Add gas snapshots in CI
+- Add E2E tests for frontend transaction flows
+- Add Chainlink Automation for periodic expired-task processing

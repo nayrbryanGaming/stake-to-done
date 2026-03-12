@@ -25,19 +25,19 @@ describe("StakeToDone", function () {
     it("Should create a task", async function () {
         const latestTime = await time.latest();
         const deadline = BigInt(latestTime) + BigInt(3600);
-        await expect(stakeToDone.connect(user).createTask("Finish the MVP", deadline))
+        await expect(stakeToDone.connect(user).createTask("Finish weekly report", deadline))
             .to.emit(stakeToDone, "TaskCreated")
-            .withArgs(BigInt(1), user.address, "Finish the MVP", deadline);
+            .withArgs(BigInt(1), user.address, "Finish weekly report", deadline);
 
         const task = await stakeToDone.tasks(1);
-        expect(task.description).to.equal("Finish the MVP");
+        expect(task.description).to.equal("Finish weekly report");
         expect(task.user).to.equal(user.address);
     });
 
     it("Should stake tokens for a task", async function () {
         const latestTime = await time.latest();
         const deadline = BigInt(latestTime) + BigInt(3600);
-        await stakeToDone.connect(user).createTask("Finish the MVP", deadline);
+        await stakeToDone.connect(user).createTask("Finish weekly report", deadline);
 
         await expect(stakeToDone.connect(user).stakeTask(1, STAKE_AMOUNT))
             .to.emit(stakeToDone, "TaskStaked")
@@ -51,7 +51,7 @@ describe("StakeToDone", function () {
     it("Should return funds when task completed before deadline", async function () {
         const latestTime = await time.latest();
         const deadline = BigInt(latestTime) + BigInt(3600);
-        await stakeToDone.connect(user).createTask("Finish the MVP", deadline);
+        await stakeToDone.connect(user).createTask("Finish weekly report", deadline);
         await stakeToDone.connect(user).stakeTask(1, STAKE_AMOUNT);
 
         const initialBalance = await mockUSDC.balanceOf(user.address);
@@ -68,7 +68,7 @@ describe("StakeToDone", function () {
     it("Should send funds to treasury when deadline passed", async function () {
         const latestTime = await time.latest();
         const deadline = BigInt(latestTime) + BigInt(3600);
-        await stakeToDone.connect(user).createTask("Finish the MVP", deadline);
+        await stakeToDone.connect(user).createTask("Finish weekly report", deadline);
         await stakeToDone.connect(user).stakeTask(1, STAKE_AMOUNT);
 
         // Advance time past deadline
@@ -89,15 +89,34 @@ describe("StakeToDone", function () {
         const latestTime = await time.latest();
         const deadline = BigInt(latestTime) + BigInt(3600);
         
-        await expect(stakeToDone.connect(user).createAndStakeTask("Finish the MVP", deadline, STAKE_AMOUNT))
+        await expect(stakeToDone.connect(user).createAndStakeTask("Finish weekly report", deadline, STAKE_AMOUNT))
             .to.emit(stakeToDone, "TaskCreated")
-            .withArgs(BigInt(1), user.address, "Finish the MVP", deadline)
+            .withArgs(BigInt(1), user.address, "Finish weekly report", deadline)
             .to.emit(stakeToDone, "TaskStaked")
             .withArgs(BigInt(1), user.address, STAKE_AMOUNT);
 
         const task = await stakeToDone.tasks(1);
-        expect(task.description).to.equal("Finish the MVP");
+        expect(task.description).to.equal("Finish weekly report");
         expect(task.stakeAmount).to.equal(STAKE_AMOUNT);
         expect(await mockUSDC.balanceOf(await stakeToDone.getAddress())).to.equal(STAKE_AMOUNT);
+    });
+
+    it("Should reject empty description", async function () {
+        const latestTime = await time.latest();
+        const deadline = BigInt(latestTime) + BigInt(3600);
+        await expect(
+            stakeToDone.connect(user).createTask("", deadline)
+        ).to.be.revertedWithCustomError(stakeToDone, "InvalidDescription");
+    });
+
+    it("Should reject claim before deadline", async function () {
+        const latestTime = await time.latest();
+        const deadline = BigInt(latestTime) + BigInt(3600);
+        await stakeToDone.connect(user).createTask("Finish weekly report", deadline);
+        await stakeToDone.connect(user).stakeTask(1, STAKE_AMOUNT);
+
+        await expect(
+            stakeToDone.claimExpiredTask(1)
+        ).to.be.revertedWithCustomError(stakeToDone, "DeadlineNotReached");
     });
 });
