@@ -143,13 +143,12 @@ contract StakeToDone is ReentrancyGuard, Ownable {
      */
     function claimExpiredTask(uint256 _taskId) external nonReentrant {
         Task storage task = tasks[_taskId];
-        if (task.completed) revert AlreadyCompleted();
-        if (task.claimed) revert AlreadyClaimed();
-        if (block.timestamp <= task.deadline) revert DeadlineNotReached();
-        if (task.stakeAmount == 0) revert NoStakeFound();
+        require(!task.completed && !task.claimed, "Already processed");
+        require(block.timestamp > task.deadline, "Deadline not reached");
+        require(task.stakeAmount > 0, "No stake found");
 
         task.claimed = true;
-        if (!stakingToken.transfer(treasury, task.stakeAmount)) revert TransferFailed();
+        require(stakingToken.transfer(treasury, task.stakeAmount), "Transfer failed");
 
         emit TaskFailed(_taskId, task.user, task.stakeAmount);
     }

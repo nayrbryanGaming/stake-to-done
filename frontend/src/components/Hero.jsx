@@ -10,7 +10,7 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
     <div className="relative-z-10 max-w-xl text-left">
       <div className="hero-tag mb-4 flex items-center gap-2">
         <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
-        <span className="text-[9px] uppercase font-bold tracking-widest text-primary opacity-80">v3.1.0 ESTABLISHED MVP</span>
+        <span className="text-[9px] uppercase font-bold tracking-widest text-primary opacity-80">v4.0.0 PERFECTION MVP</span>
       </div>
 
       <h2 className="text-2xl sm:text-4xl font-black mb-3 italic text-white uppercase tracking-tight leading-tight">
@@ -28,10 +28,10 @@ export const Hero = ({ usdcBalance, handleMint, userTaskIds }) => (
             <Coins className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-lg font-black text-white">
+            <div className="text-lg font-black text-white font-outfit">
               {usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'}
             </div>
-            <div className="text-[9px] uppercase font-bold opacity-40">USDC LIQUIDITY</div>
+            <div className="text-[9px] uppercase font-bold opacity-40 font-outfit tracking-widest">USDC LIQUIDITY</div>
           </div>
         </div>
 

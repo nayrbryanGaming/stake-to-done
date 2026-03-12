@@ -112,7 +112,7 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
     <div className={`glass-card p-6 sm:p-8 flex flex-col md:flex-row items-center gap-8 shimmer ${completed ? 'status-success' : claimed ? 'status-error' : isStaked ? 'status-warning' : 'status-dim'}`}>
       <div className="flex-1 relative-z-10 text-left">
         <div className="flex flex-wrap items-center gap-4 mb-6">
-          <span className="status-badge status-dim">PROTOCOL ID #{taskId.toString()}</span>
+          <span className="status-badge status-dim font-outfit">PROTOCOL ID #{taskId.toString()}</span>
           {completed ? (
             <div className="status-badge status-success shadow-success">
               <CheckCircle className="w-4 h-4" /> SUCCESS • FUNDS RECLAIMED
@@ -126,13 +126,13 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
               <ShieldCheck className="w-4 h-4 animate-pulse" /> ACTIVE RESOLVE • LOCKED
             </div>
           ) : (
-            <div className="status-badge status-dim shadow-premium">
+            <div className="status-badge status-dim shadow-premium font-outfit">
               <Zap className="w-4 h-4" /> INITIATED • AWAITING STAKE
             </div>
           )}
         </div>
         
-        <h3 className="text-xl sm:text-2xl font-black text-white mb-4 tracking-tight uppercase leading-tight">{description}</h3>
+        <h3 className="text-xl sm:text-2xl font-black text-white mb-4 tracking-tight uppercase leading-tight font-outfit">{description}</h3>
         
         <div className="flex flex-wrap items-center gap-10">
           <div className="flex items-center gap-4">
@@ -140,8 +140,8 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
               <Clock className="w-4 h-4" />
             </div>
             <div>
-              <div className="label-mini mb-1">Time Horizon</div>
-              <div className="text-sm font-bold text-gray-300">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
+              <div className="label-mini mb-1 font-outfit">Time Horizon</div>
+              <div className="text-sm font-bold text-gray-300 font-outfit">{new Date(Number(deadline) * 1000).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -149,9 +149,9 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
               <Coins className="w-4 h-4" />
             </div>
             <div>
-              <div className="label-mini mb-1">Staked Asset</div>
-              <div className="text-sm font-black text-white">
-                {formattedAmount} <span className="text-[10px] text-indigo-400">USDC</span>
+              <div className="label-mini mb-1 font-outfit">Staked Asset</div>
+              <div className="text-sm font-black text-white font-outfit">
+                {formattedAmount} <span className="text-[10px] text-gradient">USDC</span>
               </div>
             </div>
           </div>
@@ -182,10 +182,10 @@ export const TaskItem = ({ id, initialTask, refetchAll, searchQuery, notify }) =
                 </div>
                 <button 
                   onClick={handleAction} 
-                  disabled={isTxPending || isConfirming} 
+                  disabled={isTxPending || isConfirming || isExpired} 
                   className="h-10 px-6 btn-primary text-xs"
                 >
-                  {needsApproval ? 'AUTHORIZE' : 'LOCK STAKE'}
+                  {isExpired ? 'DEADLINE PASSED' : (needsApproval ? 'AUTHORIZE' : 'LOCK STAKE')}
                 </button>
               </div>
             )}

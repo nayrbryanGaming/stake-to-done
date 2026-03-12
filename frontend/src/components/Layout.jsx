@@ -1,6 +1,6 @@
 import { Zap, Bell, ExternalLink } from 'lucide-react'
 import { formatUnits } from 'viem'
-import { STAKE_TO_DONE_ADDRESS } from '../constants'
+import { STAKE_TO_DONE_ADDRESS, MOCK_USDC_ADDRESS } from '../constants'
 
 export const Header = ({ address, isConnected, connect, disconnect, injected, isWrongChain, switchChain, baseSepolia, usdcBalance }) => {
   const formattedBalance = usdcBalance ? Number(formatUnits(usdcBalance, 18)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
@@ -12,7 +12,13 @@ export const Header = ({ address, isConnected, connect, disconnect, injected, is
           <Zap className="w-4 h-4 text-white" />
         </div>
         <div className="text-left">
-          <h1 className="text-sm font-black tracking-widest text-white m-0 uppercase">STAKE-TO-DONE</h1>
+          <div className="flex items-center gap-2 mb-0.5">
+            <h1 className="text-sm font-black tracking-widest text-white m-0 uppercase line-height-1">STAKE-TO-DONE</h1>
+            <div className="flex items-center gap-1 bg-emerald-500/10 px-1.5 py-0.5 rounded-full">
+              <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-[7px] font-black text-emerald-500 uppercase tracking-tighter">Live Sync</span>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary/30">Protocol Code</a>
             <a href={`https://sepolia.basescan.org/address/${MOCK_USDC_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary/30">Asset Explorer</a>

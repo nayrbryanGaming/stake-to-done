@@ -37,6 +37,7 @@ function App() {
   const [deadline, setDeadline] = useState('')
   const [stakeAmount, setStakeAmount] = useState('10')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
   const [showNotification, setShowNotification] = useState(false)
   const [notificationMsg, setNotificationMsg] = useState('')
 
@@ -152,13 +153,28 @@ function App() {
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
+  // Derive Tasks
+  const allTasks = [...(userTasks || [])].reverse()
+  const activeTasks = allTasks.filter(t => !t.completed && !t.claimed)
+  const historyTasks = allTasks.filter(t => t.completed || t.claimed)
+  const displayTasks = showHistory ? historyTasks : activeTasks
+
+  // Calculate Stats
+  const stats = {
+    totalStaked: allTasks.reduce((acc, t) => acc + (t.stakeAmount || 0n), 0n),
+    successCount: allTasks.filter(t => t.completed).length,
+    failureCount: allTasks.filter(t => t.claimed && !t.completed).length,
+    activeCount: activeTasks.length,
+    successRate: allTasks.length > 0 ? Math.round((allTasks.filter(t => t.completed).length / (allTasks.filter(t => t.completed).length + allTasks.filter(t => t.claimed && !t.completed).length || 1)) * 100) : 100
+  }
+
   if (!mounted) return null
 
   return (
     <div className="min-h-screen pb-10 flex flex-col">
       <div className="mesh-bg">
-        <div className="mesh-circle c-1"></div>
-        <div className="mesh-circle c-2"></div>
+        <div className="mesh-circle c-1 animate-pulse" style={{ animationDuration: '8s' }}></div>
+        <div className="mesh-circle c-2 animate-pulse" style={{ animationDuration: '12s' }}></div>
       </div>
 
       <header className="sticky-top-nav">
@@ -188,16 +204,26 @@ function App() {
 
       <main className="container flex-1 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-6 animate-in">
             <Hero usdcBalance={usdcBalance} handleMint={handleMint} userTaskIds={userTaskIds} />
 
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <h3 className="text-sm font-black uppercase tracking-widest opacity-60">Active Commitments</h3>
+              <div className="flex items-center gap-4">
+                  <h3 className="text-xl font-black uppercase tracking-widest text-white leading-none font-outfit">
+                    Commitments <span className="text-gradient ml-1">{activeTasks.length}</span>
+                  </h3>
+                <button 
+                  onClick={() => setShowHistory(true)} 
+                  className={`text-xs font-black uppercase tracking-widest transition-opacity font-outfit ${showHistory ? 'opacity-100 text-secondary' : 'opacity-40 hover:opacity-100'}`}
+                >
+                  History
+                </button>
+              </div>
               <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Filter goals..."
+                  placeholder="Filter logs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="input-field pl-9 h-9 text-xs w-full sm:w-64"
@@ -213,21 +239,23 @@ function App() {
                   <p className="text-[10px] text-gray-500 mb-6">Connect your wallet to start the protocol</p>
                   <button onClick={() => connect({ connector: injected() })} className="btn-primary py-2 px-8 text-[10px] uppercase">Authorize Now</button>
                 </div>
-              ) : !userTaskIds || userTaskIds.length === 0 ? (
+              ) : displayTasks.length === 0 ? (
                 <div className="glass-card text-center py-10 opacity-50">
                   <Clock className="w-6 h-6 mx-auto mb-3 text-gray-600" />
-                  <p className="text-[10px] uppercase font-bold tracking-widest">No active commitments</p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest">
+                    {showHistory ? 'No archived commitments' : 'No active commitments'}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {[...userTasks || []].reverse().map(task => (
+                  {displayTasks.map(task => (
                     <TaskItem 
                       key={task.id.toString()} 
                       id={task.id}
                       initialTask={task} 
                       searchQuery={searchQuery} 
                       notify={notify} 
-                      refetchAll={() => { refetchIds(); refetchTasks(); refetchBalance(); }} 
+                      refetchAll={() => { refetchIds(); refetchTasks(); refetchBalance(); refetchAllowance(); }} 
                     />
                   ))}
                 </div>
@@ -235,7 +263,7 @@ function App() {
             </div>
           </div>
 
-          <aside className="lg:col-span-4">
+          <aside className="lg:col-span-4 animate-in" style={{ animationDelay: '0.1s' }}>
             <div className="sticky top-20">
               <TaskForm 
                 description={description} 
@@ -250,12 +278,37 @@ function App() {
                 isConfirming={isConfirming} 
               />
               
-              <div className="mt-6 glass-card p-4 border-primary/10">
+              <div className="mt-6 glass-card p-6 border-primary/10">
+                <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-50">Discipline Score</h4>
+                <div className="flex items-end gap-2 mb-6">
+                  <span className="text-4xl font-black text-gradient font-outfit">{stats.successRate}%</span>
+                  <span className="text-[10px] uppercase font-bold text-gray-500 mb-1.5 font-outfit">Ratio</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] uppercase font-bold opacity-40">Successes</span>
+                    <span className="text-xs font-black text-emerald-500">{stats.successCount}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[9px] uppercase font-bold opacity-40">Failures</span>
+                    <span className="text-xs font-black text-rose-500">{stats.failureCount}</span>
+                  </div>
+                  <div className="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-primary h-full transition-all duration-1000" 
+                      style={{ width: `${stats.successRate}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 glass-card p-4 border-white/5 bg-white/2">
                 <h4 className="text-[10px] font-black uppercase tracking-widest mb-3 opacity-50">System Logs</h4>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-[9px]">
+                  <div className="flex justify-between text-[9px] font-outfit">
                     <span className="opacity-40 uppercase">Protocol Version</span>
-                    <span className="font-bold text-primary">v3.1.0-STABLE</span>
+                    <span className="font-bold text-gradient">v4.1.0-PLATINUM</span>
                   </div>
                   <div className="flex justify-between text-[9px]">
                     <span className="opacity-40 uppercase">Network</span>

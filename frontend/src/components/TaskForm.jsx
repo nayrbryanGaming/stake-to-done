@@ -1,9 +1,9 @@
 import { Zap, LayoutDashboard, ArrowRight } from 'lucide-react'
 
 export const TaskForm = ({ description, setDescription, deadline, setDeadline, stakeAmount, setStakeAmount, handleCreateTask, isConnected, isTxPending, isConfirming }) => (
-  <div className="glass-card p-6 sm:p-8 bg-indigo-500-10 border-indigo-500-20 animate-in" style={{ animationDelay: '0.5s' }}>
+  <div className="glass-card flex flex-col p-6 sm:p-8 border-primary/20 animate-in" style={{ animationDelay: '0.5s' }}>
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-base font-black flex items-center gap-2 text-white">
+      <h3 className="text-base font-black flex items-center gap-2 text-white font-outfit">
         <Zap className="w-4 h-4 text-primary" /> New Goal
       </h3>
       <div className="w-8 h-8 rounded-full border-white/5 flex items-center justify-center opacity-40">
