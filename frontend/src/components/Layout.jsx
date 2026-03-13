@@ -1,97 +1,178 @@
-import { Zap, Bell } from 'lucide-react'
+﻿import { useEffect } from 'react'
+import { useConnect, useAccount, useDisconnect } from 'wagmi'
 import { formatUnits } from 'viem'
-import { motion as Motion, AnimatePresence as AnimatePresenceMotion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Zap, Bell, X, ChevronRight, Wallet } from 'lucide-react'
 import { STAKE_TO_DONE_ADDRESS, USDC_ADDRESS, USDC_DECIMALS } from '../constants'
 
-export const Header = ({ address, isConnected, connect, disconnect, injected, usdcBalance }) => {
-  const formattedBalance = usdcBalance ? Number(formatUnits(usdcBalance, USDC_DECIMALS)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
-  
+const WALLET_DESCS = {
+  MetaMask: 'Browser extension & mobile wallet',
+  Injected: 'Browser injected wallet',
+  'Coinbase Wallet': 'Coinbase self-custody wallet',
+}
+
+/* ─── Header ────────────────────────────── */
+export const Header = ({ onConnectClick, usdcBalance }) => {
+  const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
+
+  const fmt = usdcBalance
+    ? Number(formatUnits(usdcBalance, USDC_DECIMALS)).toLocaleString(undefined, {
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+      })
+    : '0.00'
+
   return (
-    <Motion.nav 
+    <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="flex flex-col sm:flex-row justify-between items-center py-4 gap-4"
+      transition={{ duration: 0.4 }}
+      className="sticky-nav"
     >
-      <div className="flex items-center gap-3">
-        <Motion.div 
-          whileHover={{ rotate: 15, scale: 1.1 }}
-          className="icon-widget w-12 h-12 bg-primary shadow-lg shadow-primary/30"
-        >
-          <Zap className="text-white" />
-        </Motion.div>
-        <div className="text-left">
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-base font-black tracking-widest text-white m-0 uppercase line-height-1 font-outfit">STAKE-TO-DONE</h1>
-            <div className="flex items-center gap-2 bg-success-dim px-2 py-1 rounded-full border border-success/10">
-              <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse"></div>
-              <span className="text-[8px] font-bold text-success uppercase tracking-wider">Connected</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary">Contract</a>
-            <a href={`https://sepolia.basescan.org/address/${USDC_ADDRESS}`} target="_blank" rel="noreferrer" className="text-[9px] opacity-40 hover:opacity-100 underline decoration-primary">Token</a>
+      <div className="nav-inner">
+        <div className="nav-logo">
+          <motion.div className="logo-icon" whileHover={{ rotate: 12, scale: 1.08 }}>
+            <Zap />
+          </motion.div>
+          <div className="logo-text">
+            <span className="logo-name">Stake-To-Done</span>
+            <span className="logo-sub">Proof of Commitment</span>
           </div>
         </div>
-      </div>
 
-      <div className="flex items-center gap-4">
-        {isConnected ? (
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end">
-              <span className="label-mini mb-0 text-[8px]">Wallet Balance</span>
-              <span className="text-sm font-black text-white">
-                {formattedBalance} <span className="text-primary text-[10px]">USDC</span>
-              </span>
+        <div className="nav-links">
+          <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer">
+            Contract
+          </a>
+          <span>·</span>
+          <a href={`https://sepolia.basescan.org/address/${USDC_ADDRESS}`} target="_blank" rel="noreferrer">
+            Token
+          </a>
+        </div>
+
+        <div className="nav-actions">
+          {isConnected ? (
+            <div className="wallet-info">
+              <div className="wallet-balance">
+                <span className="wallet-balance-label">Balance</span>
+                <span className="wallet-balance-value">{fmt} <span>USDC</span></span>
+              </div>
+              <div className="wallet-address">
+                <span className="wallet-address-label">Wallet</span>
+                <span className="wallet-address-value">
+                  {address?.slice(0, 6)}…{address?.slice(-4)}
+                </span>
+              </div>
+              <motion.button
+                className="btn btn-glass btn-sm"
+                style={{ borderColor: 'rgba(244,63,94,.2)', color: 'var(--error)' }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => disconnect()}
+              >
+                Disconnect
+              </motion.button>
             </div>
-            <Motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="px-3 py-1.5 glass-card rounded-lg flex flex-col items-center border-primary/20"
+          ) : (
+            <motion.button
+              className="btn btn-primary btn-md"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={onConnectClick}
             >
-              <span className="label-mini text-[8px] mb-0 opacity-50">Address</span>
-              <span className="text-[10px] font-mono font-bold text-white">
-                {address?.slice(0, 6)}...{address?.slice(-4)}
-              </span>
-            </Motion.div>
-            <Motion.button
-              whileHover={{ backgroundColor: 'rgba(244, 63, 94, 0.2)' }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => disconnect()}
-              className="btn-glass border-error-dim text-error font-bold text-[9px] uppercase tracking-widest px-3 py-1"
-            >
-              Disconnect
-            </Motion.button>
-          </div>
-        ) : (
-          <Motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => connect({ connector: injected() })}
-            className="btn-primary py-2 px-6 text-[10px] uppercase tracking-widest"
-          >
-            Connect Wallet
-          </Motion.button>
-        )}
+              <Wallet /> Connect Wallet
+            </motion.button>
+          )}
+        </div>
       </div>
-    </Motion.nav>
+    </motion.header>
   )
 }
 
-export const Toast = ({ showNotification, notificationMsg }) => (
-  <AnimatePresenceMotion>
-    {showNotification && (
-      <Motion.div 
-        initial={{ y: 50, opacity: 0, scale: 0.9 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 50, opacity: 0, scale: 0.9 }}
-        className="fixed bottom-6 right-6 z-50 pointer-events-none"
+/* ─── Wallet Modal ──────────────────────── */
+export const WalletModal = ({ isOpen, onClose }) => {
+  const { connect, connectors, isPending } = useConnect()
+  const { isConnected } = useAccount()
+
+  useEffect(() => {
+    if (isConnected && isOpen) onClose()
+  }, [isConnected, isOpen, onClose])
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="modal-overlay"
+        onClick={onClose}
       >
-        <div className="glass-card px-6 py-4 flex items-center gap-3 border-primary-dim shadow-premium bg-black/80">
-          <div className="w-8 h-8 rounded-full bg-primary-dim flex items-center justify-center">
-            <Bell className="w-4 h-4 text-primary" />
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 24 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 24 }}
+          transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+          className="modal-box"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="modal-header">
+            <div>
+              <h2 className="modal-title">Connect Wallet</h2>
+              <p className="modal-desc">Choose your preferred wallet to connect</p>
+            </div>
+            <button className="modal-close" onClick={onClose}><X /></button>
           </div>
-          <p className="text-sm font-bold text-white">{notificationMsg}</p>
+
+          <div className="wallet-options">
+            {connectors.map(connector => (
+              <motion.button
+                key={connector.uid}
+                className="wallet-option"
+                whileTap={{ scale: 0.98 }}
+                disabled={isPending}
+                onClick={() => connect({ connector })}
+              >
+                <div className="wallet-option-img">
+                  {connector.icon
+                    ? <img src={connector.icon} alt={connector.name} />
+                    : <Wallet style={{ width: 24, height: 24, color: 'var(--primary)' }} />}
+                </div>
+                <div className="wallet-option-info">
+                  <div className="wallet-option-name">{connector.name}</div>
+                  <div className="wallet-option-desc">
+                    {WALLET_DESCS[connector.name] ?? 'Connect with this wallet'}
+                  </div>
+                </div>
+                {isPending
+                  ? <div style={{ width:16,height:16,borderRadius:'50%',border:'2px solid var(--primary)',borderTopColor:'transparent',animation:'spin .8s linear infinite' }} />
+                  : <span className="wallet-option-arrow"><ChevronRight /></span>}
+              </motion.button>
+            ))}
+          </div>
+
+          <p style={{ marginTop:'1.2rem',fontSize:'.62rem',color:'var(--muted)',textAlign:'center',lineHeight:1.5 }}>
+            Open-source protocol — no personal data collected.
+          </p>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+/* ─── Toast ─────────────────────────────── */
+export const Toast = ({ show, msg }) => (
+  <AnimatePresence>
+    {show && (
+      <motion.div
+        initial={{ y: 30, opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 30, opacity: 0, scale: 0.9 }}
+        className="toast-wrap"
+      >
+        <div className="toast">
+          <div className="toast-icon"><Bell /></div>
+          <p className="toast-msg">{msg}</p>
         </div>
-      </Motion.div>
+      </motion.div>
     )}
-  </AnimatePresenceMotion>
+  </AnimatePresence>
 )

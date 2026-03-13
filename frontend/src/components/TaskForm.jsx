@@ -1,78 +1,95 @@
-import { Zap, ArrowRight } from 'lucide-react'
-import { motion as Motion } from 'framer-motion'
+﻿import { Zap, ArrowRight } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { parseUnits } from 'viem'
+import { USDC_DECIMALS } from '../constants'
 
-export const TaskForm = ({ description, setDescription, deadline, setDeadline, stakeAmount, setStakeAmount, handleCreateTask, isConnected, isTxPending, isConfirming }) => (
-  <Motion.div 
-    initial={{ opacity: 0, x: 20 }}
-    animate={{ opacity: 1, x: 0 }}
-    transition={{ duration: 0.6, delay: 0.4 }}
-    className="glass-card flex flex-col p-6 sm:p-8 border-primary/20"
-  >
-    <div className="flex items-center justify-between mb-8">
-      <h3 className="text-xl font-black flex items-center gap-4 text-white font-outfit">
-        <Motion.div 
+export const TaskForm = ({
+  description, setDescription,
+  deadline, setDeadline,
+  stakeAmount, setStakeAmount,
+  onSubmit,
+  isConnected,
+  isTxPending, isConfirming,
+  allowance,
+}) => {
+  let amountWei = 0n
+  try { amountWei = parseUnits(stakeAmount || '0', USDC_DECIMALS) } catch {}
+  const needsApproval = isConnected && (allowance ?? 0n) < amountWei && amountWei > 0n
+
+  const btnLabel = () => {
+    if (!isConnected)   return 'Connect Wallet First'
+    if (isConfirming)   return 'Confirming…'
+    if (isTxPending && needsApproval) return 'Approving USDC…'
+    if (isTxPending)    return 'Submitting…'
+    if (needsApproval)  return 'Approve & Stake'
+    return 'Create & Stake'
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="card form-card"
+    >
+      <div className="form-card-header">
+        <motion.div
+          className="icon-widget icon-widget-primary"
           whileHover={{ rotate: 180 }}
-          className="icon-widget h-12 w-12 bg-primary/10"
+          transition={{ duration: 0.5 }}
         >
-          <Zap className="text-primary" />
-        </Motion.div>
-        Create Task
-      </h3>
-    </div>
-
-    <form onSubmit={handleCreateTask} className="space-y-8 text-left">
-      <div className="space-y-3">
-        <label className="label-mini">Task Description</label>
-        <input
-          type="text"
-          required
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Example: Finish report draft"
-          className="input-field border-primary-dim"
-        />
+          <Zap />
+        </motion.div>
+        <h3 className="form-card-title">New Commitment</h3>
       </div>
 
-      <div className="space-y-3">
-        <label className="label-mini">Deadline</label>
-        <input
-          type="datetime-local"
-          required
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-          className="input-field"
-          style={{ colorScheme: 'dark' }}
-        />
-      </div>
-
-      <div className="space-y-3">
-        <label className="label-mini">Stake (USDC)</label>
-        <div className="relative">
+      <form onSubmit={onSubmit} className="form-stack">
+        <div className="form-group">
+          <label className="form-label">Task Description</label>
           <input
-            type="number"
-            required
-            step="0.01"
-            min="0"
-            value={stakeAmount}
-            onChange={(e) => setStakeAmount(e.target.value)}
-            placeholder="0.00"
-            className="input-field border-primary-dim"
+            type="text" required className="form-input"
+            placeholder="Finish the project report…"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
           />
         </div>
-      </div>
 
-      <div className="pt-2">
-        <Motion.button
+        <div className="form-group">
+          <label className="form-label">Deadline</label>
+          <input
+            type="datetime-local" required className="form-input"
+            value={deadline}
+            onChange={e => setDeadline(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Stake Amount (USDC)</label>
+          <input
+            type="number" required min="0.01" step="0.01"
+            className="form-input" placeholder="10.00"
+            value={stakeAmount}
+            onChange={e => setStakeAmount(e.target.value)}
+          />
+        </div>
+
+        <motion.button
+          type="submit"
+          className="btn btn-primary btn-lg btn-full"
+          style={{ marginTop: '0.5rem' }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          type="submit"
-          disabled={!isConnected || isTxPending || isConfirming}
-          className="w-full btn-primary py-4 text-base shadow-premium"
+          disabled={isTxPending || isConfirming}
         >
-          <span>{isConfirming ? 'PROCESSING...' : 'CREATE AND STAKE'}</span>
-          <ArrowRight className="w-5 h-5 ml-3" />
-        </Motion.button>
-      </div>
-    </form>
-  </Motion.div>
-)
+          {btnLabel()} <ArrowRight />
+        </motion.button>
+      </form>
+
+      {needsApproval && !isTxPending && (
+        <p style={{ marginTop: '0.75rem', fontSize: '0.65rem', color: 'var(--warning)', fontWeight: 700 }}>
+          ⚡ Two steps: first approve USDC, then the task is created.
+        </p>
+      )}
+    </motion.div>
+  )
+}
