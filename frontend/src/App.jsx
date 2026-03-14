@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+// Stake-To-Done Premium Protocol v1.1.0 - Layout Fix
 import {
   useAccount,
   useReadContract,
