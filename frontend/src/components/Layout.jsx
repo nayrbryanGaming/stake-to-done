@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useConnect, useAccount, useDisconnect } from 'wagmi'
 import { formatUnits } from 'viem'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -35,8 +35,8 @@ export const Header = ({ onConnectClick, usdcBalance }) => {
             <Zap />
           </motion.div>
           <div className="logo-text">
-            <span className="logo-name">Stake-To-Done</span>
-            <span className="logo-sub">Proof of Commitment</span>
+            <span className="logo-name">STAKE-TO-DONE PREMIUM FIX</span>
+            <span className="logo-sub">Restoring Excellence</span>
           </div>
         </div>
 
