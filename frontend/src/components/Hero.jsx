@@ -1,4 +1,4 @@
-﻿import { Target, Coins, PlusCircle } from 'lucide-react'
+import { Target, Coins, PlusCircle } from 'lucide-react'
 import { formatUnits } from 'viem'
 import { motion } from 'framer-motion'
 import { USDC_DECIMALS } from '../constants'
@@ -26,8 +26,8 @@ export const Hero = ({ usdcBalance, onMint, isMinting }) => {
       </div>
 
       <h2 className="hero-title">
-        Define Your Goals.<br />
-        <span className="grad">Secure Your Commitment.</span>
+        PREMIUM RESTORATION.<br />
+        <span className="grad">Protocol v1.2.7 Live.</span>
       </h2>
 
       <p className="hero-desc">
