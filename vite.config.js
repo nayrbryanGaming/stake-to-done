@@ -20,6 +20,9 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
+        entryFileNames: `assets/[name].v2022.${Date.now()}.js`,
+        chunkFileNames: `assets/[name].v2022.${Date.now()}.js`,
+        assetFileNames: `assets/[name].v2022.${Date.now()}.[ext]`,
         manualChunks: {
           react: ['react', 'react-dom'],
           wagmi: ['wagmi', 'viem'],

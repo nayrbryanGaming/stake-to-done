@@ -40,7 +40,18 @@ export const Header = ({ onConnectClick, usdcBalance, ethBalance }) => {
             <Zap />
           </motion.div>
           <div className="logo-text">
-            <span className="logo-name">STAKE-TO-DONE PROTOCOL</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="logo-name">STAKE-TO-DONE PROTOCOL</span>
+              <span style={{ 
+                background: 'var(--accent)', 
+                color: '#fff', 
+                fontSize: '0.45rem', 
+                padding: '2px 6px', 
+                borderRadius: '4px', 
+                fontWeight: 900,
+                letterSpacing: '0.05em'
+              }}>V2.0.2 - FINAL FIX</span>
+            </div>
             <span className="logo-sub">Proof of Commitment System</span>
           </div>
         </div>

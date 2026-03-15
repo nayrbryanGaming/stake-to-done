@@ -60,6 +60,16 @@ function App() {
     toastTimer.current = setTimeout(() => setToast({ show: false, msg: '' }), 4500)
   }
 
+  // FORCE NETWORK SWITCH
+  useEffect(() => {
+    if (isConnected && isWrongChain) {
+      const timer = setTimeout(() => {
+        switchChain({ chainId: baseSepolia.id })
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [isConnected, isWrongChain, switchChain])
+
   useEffect(() => {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current)
