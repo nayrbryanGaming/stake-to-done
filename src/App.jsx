@@ -247,12 +247,16 @@ function App() {
       />
       <WalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
 
+      {isConnected && console.log('DEBUG: Current Chain ID:', chainId)}
+
       {isWrongChain && (
-        <div className="network-banner">
-          Wrong network detected
-          <button className="btn btn-glass btn-xs" onClick={() => switchChain({ chainId: baseSepolia.id })}>
-            Switch to Base Sepolia
-          </button>
+        <div className="extreme-banner">
+          ⚠️ WRONG NETWORK DETECTED: PLEASE SWITCH TO BASE SEPOLIA ⚠️
+          <div style={{ marginTop: '0.5rem' }}>
+            <button className="btn btn-glass btn-sm" onClick={() => switchChain({ chainId: baseSepolia.id })}>
+              Force Switch to Base Sepolia
+            </button>
+          </div>
         </div>
       )}
 
