@@ -8,7 +8,7 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 :root {
-  --bg:       #050508;
+  --bg:       #020410; /* Distinct Deep Navy for V4.0 */
   --card:     rgba(10,10,18,0.8);
   --border:   rgba(255,255,255,0.08);
   --primary:  #8b5cf6; /* Vibrant Violet */
@@ -210,9 +210,9 @@ img,svg { display:block; }
 .form-input::placeholder { color:var(--muted); font-weight:500; }
 .form-input:focus { border-color:var(--primary); background:rgba(0,0,0,.6); box-shadow:0 0 0 3px rgba(99,102,241,.1); }
 input[type="datetime-local"] { color-scheme:dark; }
-input[type="number"] { -moz-appearance:textfield; }
+input[type="number"] { -moz-appearance:textfield; appearance:textfield; }
 input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; }
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .form-card { padding:1.65rem; }
 .form-card-header { display:flex; align-items:center; gap:.8rem; margin-bottom:1.4rem; }
 .form-card-title { font-family:'Outfit',sans-serif; font-size:.95rem; font-weight:900;
@@ -379,6 +379,18 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; }
 .wallet-option-name { font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:800;color:#fff; }
 .wallet-option-desc { font-size:.62rem;font-weight:600;color:var(--muted);margin-top:2px; }
 .wallet-option-arrow svg { width:15px;height:15px;color:var(--muted); }
+
+.spinner-small {
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid var(--primary); border-top-color:transparent;
+  animation:spin .8s linear infinite;
+}
+
+.wallet-error {
+  margin-top: 1rem; padding: .6rem; border-radius: var(--r-sm);
+  background: rgba(244,63,94,.1); border: 1px solid rgba(244,63,94,.2);
+  color: var(--error); font-size: .65rem; font-weight: 700; text-align: center;
+}
 
 /* ── Footer ──────────────────────────────────────────── */
 .footer       { margin-top:auto;border-top:1px solid var(--border);padding:1.1rem 0; }

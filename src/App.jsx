@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-// Stake-To-Done Premium Protocol v1.1.0 - Layout Fix
+// Stake-To-Done Protocol
 import {
   useAccount,
   useReadContract,
@@ -7,6 +7,7 @@ import {
   useWaitForTransactionReceipt,
   useChainId,
   useSwitchChain,
+  useBalance,
 } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { Search, Clock, Wallet } from 'lucide-react'
@@ -99,6 +100,11 @@ function App() {
     },
   })
 
+  const { data: ethBalance, refetch: refetchEth } = useBalance({
+    address: safeAddress,
+    query: { enabled: isConnected && !isWrongChain, refetchInterval: 5000 },
+  })
+
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: USDC_ADDRESS,
     abi: USDC_ABI,
@@ -112,7 +118,8 @@ function App() {
     refetchTasks()
     refetchBalance()
     refetchAllowance()
-  }, [refetchIds, refetchTasks, refetchBalance, refetchAllowance])
+    refetchEth()
+  }, [refetchIds, refetchTasks, refetchBalance, refetchAllowance, refetchEth])
 
   const submitCreateAndStake = useCallback(({ cleanedDescription, deadlineTimestamp, amountWei }) => {
     writeContract({
@@ -120,6 +127,7 @@ function App() {
       abi: STAKE_TO_DONE_ABI,
       functionName: 'createAndStakeTask',
       args: [cleanedDescription, BigInt(deadlineTimestamp), amountWei],
+      gas: 250000n,
     })
     setPendingAction(TX_ACTION.CREATE_TASK)
     setDescription('')
@@ -157,8 +165,9 @@ function App() {
           abi: USDC_ABI,
           functionName: 'approve',
           args: [STAKE_TO_DONE_ADDRESS, amountWei],
+          gas: 80000n,
         })
-        return showToast('USDC approval submitted')
+        return showToast('Mock USDC approval submitted')
       }
 
       showToast('Submitting task...')
@@ -181,6 +190,7 @@ function App() {
       abi: USDC_ABI,
       functionName: 'mint',
       args: [safeAddress, parseUnits('1000', USDC_DECIMALS)],
+      gas: 100000n,
     })
   }
 
@@ -200,7 +210,7 @@ function App() {
     if (pendingAction === TX_ACTION.CREATE_TASK) {
       showToast('Task created and staked')
     } else if (pendingAction === TX_ACTION.MINT_USDC) {
-      showToast('Test USDC minted')
+      showToast('Mock USDC minted')
     } else {
       showToast('Transaction confirmed')
     }
@@ -230,10 +240,10 @@ function App() {
         <div className="mesh-circle c-2" />
         <div className="mesh-circle c-3" />
       </div>
-
       <Header
         onConnectClick={() => setShowWalletModal(true)}
         usdcBalance={usdcBalance}
+        ethBalance={ethBalance?.value}
       />
       <WalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
 
@@ -251,7 +261,12 @@ function App() {
       <main className="container">
         <div className="main-grid">
           <section className="main-col">
-            <Hero usdcBalance={usdcBalance} onMint={handleMint} isMinting={isMintBusy} />
+            <Hero
+              usdcBalance={usdcBalance}
+              ethBalance={ethBalance?.value}
+              onMint={handleMint}
+              isMinting={isMintBusy}
+            />
 
             <div className="tasks-controls">
               <div className="tasks-controls-left">
@@ -403,7 +418,7 @@ function App() {
               Contract
             </a>
             <a href={`https://sepolia.basescan.org/address/${USDC_ADDRESS}`} target="_blank" rel="noreferrer">
-              Token
+              Mock Token
             </a>
           </div>
           <p className="footer-copy">Stake-To-Done 2026</p>

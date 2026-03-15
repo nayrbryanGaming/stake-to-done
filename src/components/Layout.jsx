@@ -12,13 +12,18 @@ const WALLET_DESCS = {
 }
 
 /* ─── Header ────────────────────────────── */
-export const Header = ({ onConnectClick, usdcBalance }) => {
+export const Header = ({ onConnectClick, usdcBalance, ethBalance }) => {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
 
   const fmt = usdcBalance
     ? Number(formatUnits(usdcBalance, USDC_DECIMALS)).toLocaleString(undefined, {
         minimumFractionDigits: 2, maximumFractionDigits: 2,
+      })
+    : '0.00'
+  const fmtEth = ethBalance
+    ? Number(formatUnits(ethBalance, 18)).toLocaleString(undefined, {
+        minimumFractionDigits: 4, maximumFractionDigits: 4,
       })
     : '0.00'
 
@@ -35,8 +40,8 @@ export const Header = ({ onConnectClick, usdcBalance }) => {
             <Zap />
           </motion.div>
           <div className="logo-text">
-            <span className="logo-name">STAKE-TO-DONE NUCLEAR FIX v3.0</span>
-            <span className="logo-sub">Ultra-Premium Restoration 2026</span>
+            <span className="logo-name">STAKE-TO-DONE PROTOCOL</span>
+            <span className="logo-sub">Proof of Commitment System</span>
           </div>
         </div>
 
@@ -46,7 +51,7 @@ export const Header = ({ onConnectClick, usdcBalance }) => {
           </a>
           <span>·</span>
           <a href={`https://sepolia.basescan.org/address/${USDC_ADDRESS}`} target="_blank" rel="noreferrer">
-            Token
+            Mock Token
           </a>
         </div>
 
@@ -55,7 +60,11 @@ export const Header = ({ onConnectClick, usdcBalance }) => {
             <div className="wallet-info">
               <div className="wallet-balance">
                 <span className="wallet-balance-label">Balance</span>
-                <span className="wallet-balance-value">{fmt} <span>USDC</span></span>
+                <span className="wallet-balance-value">{fmt} <span>MOCK USDC</span></span>
+              </div>
+              <div className="wallet-balance">
+                <span className="wallet-balance-label">Gas ETH</span>
+                <span className="wallet-balance-value" style={{ color: 'var(--accent)' }}>{fmtEth} <span>ETH</span></span>
               </div>
               <div className="wallet-address">
                 <span className="wallet-address-label">Wallet</span>
@@ -90,7 +99,7 @@ export const Header = ({ onConnectClick, usdcBalance }) => {
 
 /* ─── Wallet Modal ──────────────────────── */
 export const WalletModal = ({ isOpen, onClose }) => {
-  const { connect, connectors, isPending } = useConnect()
+  const { connect, connectors, isPending, error: connectError } = useConnect()
   const { isConnected } = useAccount()
 
   useEffect(() => {
@@ -143,11 +152,17 @@ export const WalletModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
                 {isPending
-                  ? <div style={{ width:16,height:16,borderRadius:'50%',border:'2px solid var(--primary)',borderTopColor:'transparent',animation:'spin .8s linear infinite' }} />
+                  ? <div className="spinner-small" />
                   : <span className="wallet-option-arrow"><ChevronRight /></span>}
               </motion.button>
             ))}
           </div>
+
+          {connectError && (
+            <div className="wallet-error">
+              {connectError.shortMessage || connectError.message}
+            </div>
+          )}
 
           <p style={{ marginTop:'1.2rem',fontSize:'.62rem',color:'var(--muted)',textAlign:'center',lineHeight:1.5 }}>
             Open-source protocol — no personal data collected.

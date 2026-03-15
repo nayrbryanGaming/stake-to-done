@@ -1,4 +1,4 @@
-﻿import { Zap, ArrowRight } from 'lucide-react'
+import { Zap, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { parseUnits } from 'viem'
 import { USDC_DECIMALS } from '../constants'
@@ -19,7 +19,7 @@ export const TaskForm = ({
   const btnLabel = () => {
     if (!isConnected)   return 'Connect Wallet First'
     if (isConfirming)   return 'Confirming…'
-    if (isTxPending && needsApproval) return 'Approving USDC…'
+    if (isTxPending && needsApproval) return 'Approving Mock USDC…'
     if (isTxPending)    return 'Submitting…'
     if (needsApproval)  return 'Approve & Stake'
     return 'Create & Stake'
@@ -64,7 +64,7 @@ export const TaskForm = ({
         </div>
 
         <div className="form-group">
-          <label className="form-label">Stake Amount (USDC)</label>
+          <label className="form-label">Stake Amount (Mock USDC)</label>
           <input
             type="number" required min="0.01" step="0.01"
             className="form-input" placeholder="10.00"
@@ -87,7 +87,7 @@ export const TaskForm = ({
 
       {needsApproval && !isTxPending && (
         <p style={{ marginTop: '0.75rem', fontSize: '0.65rem', color: 'var(--warning)', fontWeight: 700 }}>
-          ⚡ Two steps: first approve USDC, then the task is created.
+          ⚡ Two steps: first approve Mock USDC, then the task is created.
         </p>
       )}
     </motion.div>

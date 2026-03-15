@@ -1,13 +1,13 @@
 # Stake-To-Done Protocol
 
-Decentralized productivity protocol on Base where users stake USDC for task commitments.
+Decentralized commitment protocol on Base where users stake assets for task completion.
 
 ## 1. System Architecture
 
 ```ascii
 +------------------+          +---------------------------+
 | Browser + Wallet | <------> | React + Wagmi + Viem UI  |
-| (MetaMask)       |          | (frontend)               |
+| (MetaMask)       |          | (Vite Implementation)    |
 +--------+---------+          +------------+--------------+
          |                                 |
          | JSON-RPC                        | Contract calls
@@ -24,101 +24,55 @@ Decentralized productivity protocol on Base where users stake USDC for task comm
 +----------------------------------------------------------+
 ```
 
-## 2. Smart Contract Code
+## 2. Technical Stack
 
-- Core contract: `contracts/StakeToDone.sol`
-- Mock staking token: `contracts/MockUSDC.sol`
+- **Smart Contracts**: Solidity (Hardhat)
+- **Frontend**: React, Vite, Framer Motion
+- **Web3 Layer**: Wagmi, Viem, TanStack Query
+- **Styling**: Vanilla CSS (Premium Glassmorphism)
 
-Main rules:
-- `createTask`: description must not be empty, deadline must be future.
-- `stakeTask`: only task owner, one-time stake, before deadline.
-- `completeTask`: only owner, before deadline, returns staked tokens.
-- `claimExpiredTask`: after deadline, sends stake to treasury.
-- Reentrancy protected with `ReentrancyGuard`.
+## 3. Directory Structure
 
-## 3. Frontend Implementation
+- `src/`: Frontend React components and logic
+- `contracts/`: Solidity smart contracts
+- `test/`: Hardhat unit tests
+- `scripts/`: Deployment and utility scripts
+- `public/`: Static assets
 
-- Stack: React + Vite + Wagmi + Viem
-- Main files:
-  - `frontend/src/App.jsx`
-  - `frontend/src/components/TaskForm.jsx`
-  - `frontend/src/components/TaskItem.jsx`
-  - `frontend/src/components/Layout.jsx`
-  - `frontend/src/components/Hero.jsx`
+## 4. Setup and Deployment
 
-Implemented UI features:
-- Connect/disconnect wallet
-- Create + stake task in one flow
-- Approve USDC when allowance is missing
-- Complete task before deadline
-- Claim expired task (funds go to treasury)
-- Live countdown per task
-
-## 4. Deployment Guide
-
-1. Install dependencies:
+1. **Installation**:
 ```bash
-npm install --workspaces=false
-npm --prefix frontend install
+npm install
 ```
 
-2. Configure `.env` at project root:
+2. **Configuration**:
+Create a `.env` file at the root:
 ```bash
 BASE_SEPOLIA_RPC=https://sepolia.base.org
 PRIVATE_KEY=YOUR_PRIVATE_KEY
 TREASURY_ADDRESS=YOUR_TREASURY_ADDRESS
 ```
 
-3. Deploy:
+3. **Development**:
 ```bash
-npm run deploy:base
+npm run dev
 ```
 
-4. Sync deployed addresses to frontend:
-- Script writes `addresses.json`
-- Script updates `frontend/src/constants.js` automatically
-
-5. Run frontend:
+4. **Production Build**:
 ```bash
-npm --prefix frontend run dev
+npm run build
 ```
 
-## 5. Testing
-
-Run smart contract tests:
-```bash
-npm test
-```
-
-Current test file:
-- `test/StakeToDone.js`
-
-Covered flows:
-- task creation
-- staking
-- complete before deadline
-- claim after deadline
-- create and stake in one tx
-
-## 6. Security Review
+## 5. Security and Compliance
 
 Implemented controls:
-- Reentrancy guard on transfer functions
-- Explicit task existence checks
-- Deadline validation
-- Double-processing prevention (`completed/claimed`)
-- Owner-only treasury update
-- ERC-20 transfer return-value checks
+- Reentrancy protection (OpenZeppelin)
+- Strict deadline validation
+- Multi-phase status checks
+- Owner-only administrative controls
+- 100% open-source and auditable code
 
-Operational notes:
-- Never commit real private keys to git.
-- Rotate leaked keys immediately.
+## 6. License
 
-## 7. Improvements
-
-Recommended next iterations:
-- Add event indexing + pagination for task history
-- Add role-based treasury controls (multisig)
-- Add gas snapshots in CI
-- Add E2E tests for frontend transaction flows
-- Add Chainlink Automation for periodic expired-task processing
+Distributed under the MIT License. See `LICENSE` for more information.

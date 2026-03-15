@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { formatUnits, parseUnits } from 'viem'
@@ -79,21 +79,21 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
     if (!staked) {
       if (!stake || Number(stake) <= 0) return notify('Enter stake amount')
       if (needApprove) {
-        writeContract({ address: USDC_ADDRESS, abi: USDC_ABI, functionName: 'approve', args: [STAKE_TO_DONE_ADDRESS, parsed] })
-        notify('Approving USDC…')
+        writeContract({ address: USDC_ADDRESS, abi: USDC_ABI, functionName: 'approve', args: [STAKE_TO_DONE_ADDRESS, parsed], gas: 80000n })
+        notify('Approving Mock USDC…')
       } else {
-        writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'stakeTask', args: [BigInt(tid), parsed] })
+        writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'stakeTask', args: [BigInt(tid), parsed], gas: 150000n })
       }
       return
     }
     if (!done && !clmd && !expired) {
-      writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'completeTask', args: [BigInt(tid)] })
+      writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'completeTask', args: [BigInt(tid)], gas: 130000n })
     }
   }
 
   const doClaim = () => {
     if (txPending || txCfm) return
-    writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'claimExpiredTask', args: [BigInt(tid)] })
+    writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'claimExpiredTask', args: [BigInt(tid)], gas: 120000n })
   }
 
   return (
@@ -129,7 +129,7 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
                 <div className="task-meta-label">Stake</div>
                 <div className="task-meta-value">
                   {staked?formatUnits(amt,USDC_DECIMALS):stake}{' '}
-                  <span style={{fontSize:'.65rem',color:'var(--primary)',fontWeight:700}}>USDC</span>
+                  <span style={{fontSize:'.65rem',color:'var(--primary)',fontWeight:700}}>MOCK USDC</span>
                 </div>
               </div>
             </div>
@@ -156,7 +156,7 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
             </>
           ) : !expired ? (
             <div className="stake-inline">
-              <span className="stake-inline-label">USDC</span>
+              <span className="stake-inline-label">MOCK USDC</span>
               <input type="number" min="0.01" step="0.01" value={stake} onChange={e=>setStake(e.target.value)}/>
               <motion.button className="btn btn-primary btn-sm" whileHover={{scale:1.03}} whileTap={{scale:.97}}
                 onClick={doAction} disabled={txPending||txCfm}>
