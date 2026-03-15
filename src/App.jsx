@@ -67,9 +67,10 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (isWrongChain) return // Don't spam errors if on wrong network
     if (writeError) showToast(writeError.shortMessage || writeError.message)
     if (txError) showToast(txError.shortMessage || txError.message)
-  }, [writeError, txError])
+  }, [writeError, txError, isWrongChain])
 
   const { data: userTaskIds, refetch: refetchIds } = useReadContract({
     address: STAKE_TO_DONE_ADDRESS,
