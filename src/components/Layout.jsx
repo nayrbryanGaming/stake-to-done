@@ -59,11 +59,11 @@ export const Header = ({ onConnectClick, usdcBalance, ethBalance }) => {
           {isConnected ? (
             <div className="wallet-info">
               <div className="wallet-balance">
-                <span className="wallet-balance-label">Balance</span>
-                <span className="wallet-balance-value">{fmt} <span>MOCK USDC</span></span>
+                <span className="wallet-balance-label">STAKING (USDC)</span>
+                <span className="wallet-balance-value">{fmt} <span>MOCK</span></span>
               </div>
               <div className="wallet-balance">
-                <span className="wallet-balance-label">Gas ETH</span>
+                <span className="wallet-balance-label">NETWORK (BASE SEPOLIA)</span>
                 <span className="wallet-balance-value" style={{ color: 'var(--accent)' }}>{fmtEth} <span>ETH</span></span>
               </div>
               <div className="wallet-address">

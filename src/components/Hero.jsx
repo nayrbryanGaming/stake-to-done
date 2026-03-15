@@ -56,7 +56,7 @@ export const Hero = ({ usdcBalance, ethBalance, onMint, isMinting }) => {
           <div className="hero-stat-icon" style={{ backgroundColor: 'rgba(56,189,248,0.1)', color: '#38bdf8' }}><Wallet /></div>
           <div>
             <div className="hero-stat-val">{balanceEth}</div>
-            <div className="hero-stat-label">Gas ETH (from Faucet)</div>
+            <div className="hero-stat-label">BASE SEPOLIA ETH</div>
           </div>
         </motion.div>
 
@@ -69,11 +69,16 @@ export const Hero = ({ usdcBalance, ethBalance, onMint, isMinting }) => {
             disabled={isMinting}
           >
             <PlusCircle />
-            {isMinting ? 'Minting…' : 'Get Test Mock USDC'}
+            {isMinting ? 'Minting…' : 'Step 1: Get Mock USDC'}
           </motion.button>
-          <span style={{ fontSize: '0.55rem', color: 'var(--muted)', textAlign: 'center', fontWeight: 600 }}>
-            * Use your gas ETH to mint Mock USDC
-          </span>
+          <a 
+            href="https://www.coinbase.com/faucet/base-sepolia" 
+            target="_blank" 
+            rel="noreferrer"
+            style={{ fontSize: '0.65rem', color: 'var(--accent)', textAlign: 'center', fontWeight: 800, textDecoration: 'underline' }}
+          >
+            Deposit Base Sepolia Faucet (Click Here)
+          </a>
         </div>
       </div>
     </motion.div>
