@@ -45,7 +45,7 @@ Stake-To-Done is a Web3 productivity app on Base Sepolia where users stake testn
 
 - Node.js 20+
 - MetaMask (or other EVM wallet)
-- Base Sepolia testnet ETH from faucet
+- Base Sepolia testnet ETH balance in wallet
 
 ## 5. Setup
 
@@ -105,7 +105,7 @@ Set your wallet to:
 
 Because ETH is used as gas fee by the blockchain network.
 In this project, gas uses Base Sepolia testnet ETH (not mainnet ETH).
-Base Sepolia ETH comes from faucet and is for testing only.
+Base Sepolia ETH here is testnet-only and has no mainnet monetary value.
 
 ### Why is USDC removed and replaced with ETH-only?
 
@@ -120,22 +120,13 @@ Wallet extensions inject providers and can trigger extra chain/network checks.
 If network is not Base Sepolia, the app blocks actions and asks for network switch.
 Use one active wallet extension at a time and ensure chain is `84532`.
 
-### Why can wallet show 0 ETH after faucet?
+### Why can wallet show 0 ETH on Base Sepolia?
 
 Common causes:
 - Wallet still on wrong network (not Base Sepolia)
-- Faucet sent to different wallet address
-- Faucet transaction not yet confirmed
+- Funds sent to a different wallet address
+- Transfer transaction not yet confirmed
 - RPC endpoint lagging (switch RPC and retry)
-
-### Why can a faucet link show 404 for some users?
-
-Common causes:
-- Faucet URL was changed by provider
-- Provider requires login, region support, or anti-bot checks
-- Old bookmark points to a removed page
-
-For exams/demo, avoid relying on one fixed faucet URL in presentation slides.
 
 ### How to hard refresh if page looks stale?
 

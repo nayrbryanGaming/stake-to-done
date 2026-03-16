@@ -11,7 +11,7 @@ async function main() {
   const balance = await ethers.provider.getBalance(deployer.address);
   
   if (balance < amount) {
-    console.error("Sender has insufficient balance. Please use a web faucet.");
+    console.error("Sender has insufficient balance. Top up Base Sepolia ETH and retry.");
     process.exit(1);
   }
 

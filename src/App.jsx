@@ -202,8 +202,8 @@ function App() {
           </div>
 
           <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', lineHeight: '1.7', fontSize: '0.9rem' }}>
-            Base Sepolia uses testnet ETH for gas. If you do not have balance yet,
-            request funds from a trusted Base Sepolia faucet.
+            Base Sepolia uses testnet ETH for gas.
+            Make sure your wallet has enough Base Sepolia ETH balance before continuing.
           </p>
 
           <button 

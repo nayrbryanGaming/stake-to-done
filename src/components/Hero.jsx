@@ -46,8 +46,8 @@ export const Hero = ({ ethBalance }) => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '2rem' }}>
           <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.72)', maxWidth: '210px', lineHeight: 1.45 }}>
-            Faucet providers can change URLs at any time.
-            Use any trusted Base Sepolia faucet available in your wallet/provider.
+            Ensure your wallet has Base Sepolia ETH balance before submitting transactions.
+            All actions are written on-chain and can be verified in BaseScan.
           </p>
         </div>
       </div>
