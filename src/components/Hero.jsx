@@ -1,18 +1,10 @@
-import { Target, Coins, PlusCircle } from 'lucide-react'
-import { formatUnits } from 'viem'
+import { Target, Coins, Wallet } from 'lucide-react'
+import { formatEther } from 'viem'
 import { motion } from 'framer-motion'
-import { USDC_DECIMALS } from '../constants'
 
-export const Hero = ({ usdcBalance, ethBalance, onMint, isMinting }) => {
-  const balance = usdcBalance
-    ? Number(formatUnits(usdcBalance, USDC_DECIMALS)).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    : '0.00'
-
+export const Hero = ({ ethBalance }) => {
   const balanceEth = ethBalance
-    ? Number(formatUnits(ethBalance, 18)).toLocaleString(undefined, {
+    ? Number(formatEther(ethBalance)).toLocaleString(undefined, {
         minimumFractionDigits: 4,
         maximumFractionDigits: 4,
       })
@@ -29,7 +21,7 @@ export const Hero = ({ usdcBalance, ethBalance, onMint, isMinting }) => {
 
       <div className="hero-pill">
         <div className="hero-pill-dot" />
-        <span className="hero-pill-text">Base Sepolia Testnet</span>
+        <span className="hero-pill-text">Base Sepolia Testnet Only</span>
       </div>
 
       <h2 className="hero-title">
@@ -38,47 +30,32 @@ export const Hero = ({ usdcBalance, ethBalance, onMint, isMinting }) => {
       </h2>
 
       <p className="hero-desc">
-        A decentralized commitment protocol. Stake Mock USDC on your tasks —
-        complete on time to reclaim your funds, miss the deadline and they go
-        to the treasury.
+        A 100% decentralized commitment protocol. Stake <strong>Base Sepolia ETH (Gratis)</strong> on your tasks —
+        complete on time to reclaim your funds. This is a <strong>TESTNET</strong> environment—real money is never used.
       </p>
 
       <div className="hero-stats-row">
-        <motion.div className="hero-stat-card" whileHover={{ scale: 1.02 }}>
-          <div className="hero-stat-icon"><Coins /></div>
-          <div>
-            <div className="hero-stat-val">{balance}</div>
-            <div className="hero-stat-label">Available Mock USDC</div>
-          </div>
-        </motion.div>
-
-        <motion.div className="hero-stat-card" whileHover={{ scale: 1.02 }} style={{ borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
+        <motion.div className="hero-stat-card" whileHover={{ scale: 1.02 }} style={{ flex: 1 }}>
           <div className="hero-stat-icon" style={{ backgroundColor: 'rgba(56,189,248,0.1)', color: '#38bdf8' }}><Wallet /></div>
           <div>
             <div className="hero-stat-val">{balanceEth}</div>
-            <div className="hero-stat-label">BASE SEPOLIA ETH</div>
+            <div className="hero-stat-label">BASE SEPOLIA ETH (Gratis)</div>
           </div>
         </motion.div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: 'auto' }}>
-          <motion.button
-            className="btn btn-primary btn-lg"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.96 }}
-            onClick={onMint}
-            disabled={isMinting}
-          >
-            <PlusCircle />
-            {isMinting ? 'Minting…' : 'Step 1: Get Mock USDC'}
-          </motion.button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginLeft: '2rem' }}>
           <a 
             href="https://www.coinbase.com/faucet/base-sepolia" 
             target="_blank" 
             rel="noreferrer"
-            style={{ fontSize: '0.65rem', color: 'var(--accent)', textAlign: 'center', fontWeight: 800, textDecoration: 'underline' }}
+            className="btn btn-primary"
+            style={{ fontSize: '0.85rem', padding: '0.8rem 1.5rem', fontWeight: 800 }}
           >
-            Deposit Base Sepolia Faucet (Click Here)
+            Get Free Testnet ETH
           </a>
+          <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
+            Official Coinbase Faucet
+          </p>
         </div>
       </div>
     </motion.div>

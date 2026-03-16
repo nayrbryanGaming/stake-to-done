@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { formatUnits, parseUnits } from 'viem'
+import { formatEther } from 'viem'
 import confetti from 'canvas-confetti'
 import { CheckCircle, Flame, ShieldCheck, Zap, Clock, Coins, Trophy, AlertCircle } from 'lucide-react'
-import { STAKE_TO_DONE_ADDRESS, STAKE_TO_DONE_ABI, USDC_ADDRESS, USDC_ABI, USDC_DECIMALS } from '../constants'
+import { STAKE_TO_DONE_ADDRESS, STAKE_TO_DONE_ABI } from '../constants'
 
 const fmt = (s) => {
   if (s <= 0) return 'Expired'
@@ -20,7 +20,6 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
   const { address } = useAccount()
   const { writeContract, data: hash, isPending: txPending } = useWriteContract()
   const { isLoading: txCfm, isSuccess: txOk } = useWaitForTransactionReceipt({ hash })
-  const [stake, setStake] = useState('10')
   const [now, setNow] = useState(Math.floor(Date.now() / 1000))
   const [fireworks, setFireworks] = useState(false)
 
@@ -30,19 +29,13 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
   })
   const task = initialTask ?? ft
 
-  const { data: allowance, refetch: rfa } = useReadContract({
-    address: USDC_ADDRESS, abi: USDC_ABI,
-    functionName: 'allowance', args: [address, STAKE_TO_DONE_ADDRESS],
-    query: { enabled: !!address },
-  })
-
   useEffect(() => {
     const t = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000)
     return () => clearInterval(t)
   }, [])
 
   useEffect(() => {
-    if (txOk) { rft(); rfa(); refetchAll(); notify('Transaction confirmed!') }
+    if (txOk) { rft(); refetchAll(); notify('Transaction confirmed!') }
   }, [txOk])
 
   useEffect(() => {
@@ -66,8 +59,6 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
 
   const expired = now >= Number(dl)
   const staked  = amt > 0n
-  const parsed  = (() => { try { return parseUnits(stake || '0', USDC_DECIMALS) } catch { return 0n } })()
-  const needApprove = (allowance ?? 0n) < parsed
 
   let sc = 'task-ready'
   if (done) sc = 'task-complete'
@@ -76,16 +67,6 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
 
   const doAction = () => {
     if (txPending || txCfm) return
-    if (!staked) {
-      if (!stake || Number(stake) <= 0) return notify('Enter stake amount')
-      if (needApprove) {
-        writeContract({ address: USDC_ADDRESS, abi: USDC_ABI, functionName: 'approve', args: [STAKE_TO_DONE_ADDRESS, parsed], gas: 80000n })
-        notify('Approving Mock USDC…')
-      } else {
-        writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'stakeTask', args: [BigInt(tid), parsed], gas: 150000n })
-      }
-      return
-    }
     if (!done && !clmd && !expired) {
       writeContract({ address: STAKE_TO_DONE_ADDRESS, abi: STAKE_TO_DONE_ABI, functionName: 'completeTask', args: [BigInt(tid)], gas: 130000n })
     }
@@ -110,7 +91,6 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
             {done  && <span className="badge badge-success"><CheckCircle/>Completed</span>}
             {clmd  && <span className="badge badge-error"><Flame/>Treasury</span>}
             {!done&&!clmd&&staked && <span className="badge badge-warning"><ShieldCheck/>Staked</span>}
-            {!done&&!clmd&&!staked && <span className="badge badge-primary"><Zap/>Pending Stake</span>}
             {!done&&!clmd&&expired&&staked && <span className="badge badge-error"><AlertCircle/>Expired</span>}
           </div>
           <h3 className="task-title">{String(desc)}</h3>
@@ -128,8 +108,8 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
               <div>
                 <div className="task-meta-label">Stake</div>
                 <div className="task-meta-value">
-                  {staked?formatUnits(amt,USDC_DECIMALS):stake}{' '}
-                  <span style={{fontSize:'.65rem',color:'var(--primary)',fontWeight:700}}>MOCK USDC</span>
+                  {formatEther(amt)}{' '}
+                  <span style={{fontSize:'.65rem',color:'var(--primary)',fontWeight:700}}>BASE SEPOLIA ETH</span>
                 </div>
               </div>
             </div>
@@ -154,17 +134,8 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
                 </motion.button>
               )}
             </>
-          ) : !expired ? (
-            <div className="stake-inline">
-              <span className="stake-inline-label">MOCK USDC</span>
-              <input type="number" min="0.01" step="0.01" value={stake} onChange={e=>setStake(e.target.value)}/>
-              <motion.button className="btn btn-primary btn-sm" whileHover={{scale:1.03}} whileTap={{scale:.97}}
-                onClick={doAction} disabled={txPending||txCfm}>
-                {txPending?'…':needApprove?'Approve':'Stake'}
-              </motion.button>
-            </div>
           ) : (
-            <span className="badge badge-error">Expired without stake</span>
+             <span className="badge badge-error">Expired without stake</span>
           )}
         </div>
       )}

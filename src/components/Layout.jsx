@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { useConnect, useAccount, useDisconnect } from 'wagmi'
-import { formatUnits } from 'viem'
+import { formatEther } from 'viem'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Zap, Bell, X, ChevronRight, Wallet } from 'lucide-react'
-import { STAKE_TO_DONE_ADDRESS, USDC_ADDRESS, USDC_DECIMALS } from '../constants'
+import { STAKE_TO_DONE_ADDRESS, VERSION } from '../constants'
 
 const WALLET_DESCS = {
   MetaMask: 'Browser extension & mobile wallet',
@@ -12,17 +12,12 @@ const WALLET_DESCS = {
 }
 
 /* ─── Header ────────────────────────────── */
-export const Header = ({ onConnectClick, usdcBalance, ethBalance }) => {
+export const Header = ({ onConnectClick, ethBalance }) => {
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
 
-  const fmt = usdcBalance
-    ? Number(formatUnits(usdcBalance, USDC_DECIMALS)).toLocaleString(undefined, {
-        minimumFractionDigits: 2, maximumFractionDigits: 2,
-      })
-    : '0.00'
   const fmtEth = ethBalance
-    ? Number(formatUnits(ethBalance, 18)).toLocaleString(undefined, {
+    ? Number(formatEther(ethBalance)).toLocaleString(undefined, {
         minimumFractionDigits: 4, maximumFractionDigits: 4,
       })
     : '0.00'
@@ -50,7 +45,7 @@ export const Header = ({ onConnectClick, usdcBalance, ethBalance }) => {
                 borderRadius: '4px', 
                 fontWeight: 900,
                 letterSpacing: '0.05em'
-              }}>V2.0.2 - FINAL FIX</span>
+              }}>{VERSION}</span>
             </div>
             <span className="logo-sub">Proof of Commitment System</span>
           </div>
@@ -60,21 +55,13 @@ export const Header = ({ onConnectClick, usdcBalance, ethBalance }) => {
           <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer">
             Contract
           </a>
-          <span>·</span>
-          <a href={`https://sepolia.basescan.org/address/${USDC_ADDRESS}`} target="_blank" rel="noreferrer">
-            Mock Token
-          </a>
         </div>
 
         <div className="nav-actions">
           {isConnected ? (
             <div className="wallet-info">
               <div className="wallet-balance">
-                <span className="wallet-balance-label">STAKING (USDC)</span>
-                <span className="wallet-balance-value">{fmt} <span>MOCK</span></span>
-              </div>
-              <div className="wallet-balance">
-                <span className="wallet-balance-label">NETWORK (BASE SEPOLIA)</span>
+                <span className="wallet-balance-label">WALLET (BASE SEPOLIA)</span>
                 <span className="wallet-balance-value" style={{ color: 'var(--accent)' }}>{fmtEth} <span>ETH</span></span>
               </div>
               <div className="wallet-address">
@@ -176,7 +163,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
           )}
 
           <p style={{ marginTop:'1.2rem',fontSize:'.62rem',color:'var(--muted)',textAlign:'center',lineHeight:1.5 }}>
-            Open-source protocol — no personal data collected.
+            Open-source protocol — only uses Base Sepolia Testnet.
           </p>
         </motion.div>
       </motion.div>

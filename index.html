@@ -4,12 +4,22 @@
 <head>
   <script>
     (function() {
-      const CURRENT_VERSION = 'v2.0.2-final-fix';
+      const CURRENT_VERSION = 'v2.2.0-ultimate-security';
       const storedVersion = localStorage.getItem('app_version');
       if (storedVersion !== CURRENT_VERSION) {
+        // Show a temporary "System Recovery" message to the user
+        document.body.innerHTML = `
+          <div style="background:#020410; color:#fff; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif; text-align:center; padding:20px;">
+            <div style="font-size:40px; margin-bottom:20px;">🧬</div>
+            <h1 style="font-size:24px; margin-bottom:10px;">ULTIMATE SECURITY UPDATE V2.2.0</h1>
+            <p style="color:#a1a1aa; max-width:400px; line-height:1.6;">Applying absolute cache recovery... Clearing old data and locking security protocols. We will be back in 1 second.</p>
+          </div>
+        `;
         localStorage.setItem('app_version', CURRENT_VERSION);
         // Force a hard reload from the server
-        window.location.reload(true);
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 800);
       }
     })();
   </script>

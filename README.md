@@ -97,20 +97,20 @@ To ensure the application functions correctly, use the following settings in you
 If the layout appears broken (cached version), follow these steps:
 1. **Desktop**: Press `Ctrl + Shift + R` or `Cmd + Shift + R`.
 2. **Alternative**: Open the site in **Incognito Mode** (`Ctrl + Shift + N`).
-3. **Proof of Update**: Check the top-left corner for the **"V2.0.2 - FINAL FIX"** badge.
+3. **Proof of Update**: Check the top-left corner for the **"V2.1.0 - PURE ETH"** badge.
 
 ## 8. Security & Ethics Guardrails
 
 ### A. Accidental Mainnet Protection
 The application includes a **"Nuclear Locker"** security layer. If a user's wallet is connected to the Ethereum Mainnet, the entire UI is disabled and replaced with a security warning. This prevents users from accidentally spending real ETH on a testnet application.
 
-## 9. Kunci Jawaban (Dosen Review Guide)
+## 9. Kunci Jawaban (Dosen Review Guide) - V2.1.0 PURE ETH
 
-Jika Bapak Dosen menanyakan poin-poin berikut, ini adalah landasan teknisnya:
+### Q: Kenapa USDC dihilangkan dan ganti ETH?
+**A:** Untuk keamanan maksimal mahasiswa. USDC memerlukan "Approval" tambahan yang sering membuat mahasiswa bingung/panik. Dengan Pure ETH Base Sepolia, transaksi menjadi SATU langkah, GRATIS, dan jauh lebih stabil untuk ujian.
 
-*   **P: Kenapa tertulis "$0.01" di dompet padahal ini gratis?**
-    *   **J:** Itu adalah "Biaya Estimasi" bawaan MetaMask jika dompet sedang di jaringan yang salah (Ethereum Mainnet). Di website ini, saya sudah memasang **Security Detector**. Selama logo **V2.0.2** aktif, website akan memblokir setiap transaksi uang asli. Di jaringan **Base Sepolia**, biaya tersebut adalah RP 0 (Gratis).
-*   **P: Kenapa transaksinya error saat pertama buka?**
-    *   **J:** Itu adalah masalah "Cache Browser" (Memori lama). Saya sudah menerapkan **Nuclear Cache Busting** v2.0.2 yang secara paksa akan menghapus memori lama browser agar Bapak Dosen selalu melihat versi paling aman dan terbaru.
-*   **P: Bagaimana membuktikan ini aman?**
-    *   **J:** Silakan Bapak coba hubungkan ke **Ethereum Mainnet**. Website akan secara otomatis menampilkan **Gembok Hitam (Locker)** dan menghentikan seluruh fungsi aplikasi. Aplikasi hanya akan "terbuka" jika menggunakan network **Base Sepolia**.
+### Q: Apakah ini aman dari transaksi uang asli?
+**A:** 100% AMAN. Sistem "Nuclear Locker" V2.1.0 mendeteksi jika wallet berada di Mainnet dan memblokir total akses sebelum ada satu sen pun ETH asli yang bisa keluar.
+
+### Q: Bagaimana cara verifikasi hasil kerja?
+**A:** Gunakan Base Sepolia Testnet. Saldo akan muncul sebagai ETH (Gratis). Versi terbaru adalah **V2.1.0-PURE-ETH**.

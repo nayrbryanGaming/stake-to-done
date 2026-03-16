@@ -1,7 +1,5 @@
 import { Zap, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { parseUnits } from 'viem'
-import { USDC_DECIMALS } from '../constants'
 
 export const TaskForm = ({
   description, setDescription,
@@ -10,19 +8,12 @@ export const TaskForm = ({
   onSubmit,
   isConnected,
   isTxPending, isConfirming,
-  allowance,
 }) => {
-  let amountWei = 0n
-  try { amountWei = parseUnits(stakeAmount || '0', USDC_DECIMALS) } catch {}
-  const needsApproval = isConnected && (allowance ?? 0n) < amountWei && amountWei > 0n
-
   const btnLabel = () => {
     if (!isConnected)   return 'Connect Wallet First'
     if (isConfirming)   return 'Confirming…'
-    if (isTxPending && needsApproval) return 'Approving Mock USDC…'
     if (isTxPending)    return 'Submitting…'
-    if (needsApproval)  return 'Approve & Stake'
-    return 'Create & Stake'
+    return 'Create & Stake ETH'
   }
 
   return (
@@ -64,13 +55,16 @@ export const TaskForm = ({
         </div>
 
         <div className="form-group">
-          <label className="form-label">Stake Amount (Mock USDC)</label>
+          <label className="form-label">Stake Amount (Base Sepolia ETH)</label>
           <input
-            type="number" required min="0.01" step="0.01"
-            className="form-input" placeholder="10.00"
+            type="number" required min="0.0001" step="0.0001"
+            className="form-input" placeholder="0.001"
             value={stakeAmount}
             onChange={e => setStakeAmount(e.target.value)}
           />
+          <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.4rem' }}>
+            Amount is in <strong>Testnet ETH</strong> (Value: $0.00).
+          </p>
         </div>
 
         <motion.button
@@ -84,12 +78,6 @@ export const TaskForm = ({
           {btnLabel()} <ArrowRight />
         </motion.button>
       </form>
-
-      {needsApproval && !isTxPending && (
-        <p style={{ marginTop: '0.75rem', fontSize: '0.65rem', color: 'var(--warning)', fontWeight: 700 }}>
-          ⚡ Two steps: first approve Mock USDC, then the task is created.
-        </p>
-      )}
     </motion.div>
   )
 }

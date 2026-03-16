@@ -21,11 +21,11 @@
   --text:     #ffffff;
   --dim:      #a1a1aa;
   --muted:    #3f3f46;
-  --r-sm:     12px;
-  --r:        20px;
-  --r-lg:     28px;
-  --r-xl:     40px;
-  --tr:       all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --r-sm:     14px;
+  --r:        24px;
+  --r-lg:     32px;
+  --r-xl:     48px;
+  --tr:       all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   --glow:     0 0 40px rgba(139, 92, 246, 0.15);
   --neon-p:   0 0 20px rgba(139, 92, 246, 0.4);
   --sp:       0 8px 32px rgba(0, 0, 0, 0.5);
@@ -165,8 +165,9 @@ img,svg { display:block; }
              border-radius:99px; padding:.28rem .8rem; margin-bottom:1.1rem; }
 .hero-pill-dot { width:6px;height:6px;background:var(--primary);border-radius:50%;animation:pulse 2.5s infinite; }
 .hero-pill-text { font-size:.6rem; font-weight:900; letter-spacing:.2em; color:var(--primary); text-transform:uppercase; }
-.hero-title { font-size:clamp(1.55rem,3.5vw,2.4rem); font-weight:900; color:#fff;
-              text-transform:uppercase; letter-spacing:-.02em; margin-bottom:.65rem; line-height:1.1; }
+.hero-title { font-size:clamp(1.8rem,4vw,2.8rem); font-weight:900; color:#fff;
+              text-transform:uppercase; letter-spacing:-.03em; margin-bottom:1rem; line-height:1.05;
+              animation: slideUp 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
 .hero-title .grad {
   background:linear-gradient(135deg,var(--primary),var(--secondary));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
@@ -259,8 +260,8 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
 .badge-warning { background:rgba(245,158,11,.12);  color:var(--warning); border:1px solid rgba(245,158,11,.2); box-shadow:0 3px 10px rgba(245,158,11,.12); }
 
 /* ── Task card ───────────────────────────────────────── */
-.task-card    { padding:1.4rem; display:flex; flex-direction:column; gap:1rem; }
-.task-card:hover { transform:translateY(-3px); }
+.task-card    { padding:1.75rem; display:flex; flex-direction:column; gap:1.25rem; }
+.task-card:hover { transform:translateY(-5px) scale(1.01); box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(139, 92, 246, 0.1); }
 .task-ready   { border-left:3px solid var(--border) !important; }
 .task-active  { border-left:3px solid var(--warning) !important; }
 .task-complete{ border-left:3px solid var(--success) !important; }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-// Stake-To-Done Protocol
+// Stake-To-Done Protocol (Pure ETH Version)
 import {
   useAccount,
   useReadContract,
@@ -12,13 +12,10 @@ import {
 import { baseSepolia } from 'wagmi/chains'
 import { Search, Clock, Wallet } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { parseUnits, zeroAddress } from 'viem'
+import { parseEther, zeroAddress, formatEther } from 'viem'
 import {
   STAKE_TO_DONE_ADDRESS,
   STAKE_TO_DONE_ABI,
-  USDC_ADDRESS,
-  USDC_ABI,
-  USDC_DECIMALS,
 } from './constants'
 import { Header, Toast, WalletModal } from './components/Layout'
 import { Hero } from './components/Hero'
@@ -26,9 +23,7 @@ import { TaskForm } from './components/TaskForm'
 import { TaskItem } from './components/TaskItem'
 
 const TX_ACTION = {
-  APPROVE_CREATE: 'approve_create',
   CREATE_TASK: 'create_task',
-  MINT_USDC: 'mint_usdc',
 }
 
 function App() {
@@ -40,13 +35,12 @@ function App() {
 
   const [description, setDescription] = useState('')
   const [deadline, setDeadline] = useState('')
-  const [stakeAmount, setStakeAmount] = useState('10')
+  const [stakeAmount, setStakeAmount] = useState('0.001')
   const [searchQuery, setSearchQuery] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
   const [toast, setToast] = useState({ show: false, msg: '' })
   const [pendingAction, setPendingAction] = useState(null)
-  const [pendingCreatePayload, setPendingCreatePayload] = useState(null)
 
   const toastTimer = useRef(null)
   const lastHandledHash = useRef(null)
@@ -77,7 +71,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (isWrongChain) return // Don't spam errors if on wrong network
+    if (isWrongChain) return 
     if (writeError) showToast(writeError.shortMessage || writeError.message)
     if (txError) showToast(txError.shortMessage || txError.message)
   }, [writeError, txError, isWrongChain])
@@ -100,50 +94,16 @@ function App() {
     query: { enabled: isConnected && !isWrongChain && taskIds.length > 0 },
   })
 
-  const { data: usdcBalance, refetch: refetchBalance } = useReadContract({
-    address: USDC_ADDRESS,
-    abi: USDC_ABI,
-    functionName: 'balanceOf',
-    args: [safeAddress],
-    query: {
-      enabled: isConnected && !isWrongChain,
-      refetchInterval: 5000,
-    },
-  })
-
   const { data: ethBalance, refetch: refetchEth } = useBalance({
     address: safeAddress,
     query: { enabled: isConnected && !isWrongChain, refetchInterval: 5000 },
   })
 
-  const { data: allowance, refetch: refetchAllowance } = useReadContract({
-    address: USDC_ADDRESS,
-    abi: USDC_ABI,
-    functionName: 'allowance',
-    args: [safeAddress, STAKE_TO_DONE_ADDRESS],
-    query: { enabled: isConnected && !isWrongChain },
-  })
-
   const refetchAll = useCallback(() => {
     refetchIds()
     refetchTasks()
-    refetchBalance()
-    refetchAllowance()
     refetchEth()
-  }, [refetchIds, refetchTasks, refetchBalance, refetchAllowance, refetchEth])
-
-  const submitCreateAndStake = useCallback(({ cleanedDescription, deadlineTimestamp, amountWei }) => {
-    writeContract({
-      address: STAKE_TO_DONE_ADDRESS,
-      abi: STAKE_TO_DONE_ABI,
-      functionName: 'createAndStakeTask',
-      args: [cleanedDescription, BigInt(deadlineTimestamp), amountWei],
-      gas: 250000n,
-    })
-    setPendingAction(TX_ACTION.CREATE_TASK)
-    setDescription('')
-    setDeadline('')
-  }, [writeContract])
+  }, [refetchIds, refetchTasks, refetchEth])
 
   const handleCreateTask = (e) => {
     e.preventDefault()
@@ -165,69 +125,40 @@ function App() {
         return showToast('Deadline must be in the future')
       }
 
-      const amountWei = parseUnits(stakeAmount, USDC_DECIMALS)
-      const payload = { cleanedDescription, deadlineTimestamp, amountWei }
-
-      if ((allowance || 0n) < amountWei) {
-        setPendingCreatePayload(payload)
-        setPendingAction(TX_ACTION.APPROVE_CREATE)
-        writeContract({
-          address: USDC_ADDRESS,
-          abi: USDC_ABI,
-          functionName: 'approve',
-          args: [STAKE_TO_DONE_ADDRESS, amountWei],
-          gas: 80000n,
-        })
-        return showToast('Mock USDC approval submitted')
-      }
-
+      const amountWei = parseEther(stakeAmount)
+      
       showToast('Submitting task...')
-      submitCreateAndStake(payload)
+      writeContract({
+        address: STAKE_TO_DONE_ADDRESS,
+        abi: STAKE_TO_DONE_ABI,
+        functionName: 'createAndStakeTask',
+        args: [cleanedDescription, BigInt(deadlineTimestamp)],
+        value: amountWei,
+        gas: 250000n,
+      })
+      
+      setPendingAction(TX_ACTION.CREATE_TASK)
+      setDescription('')
+      setDeadline('')
     } catch {
       showToast('Invalid stake amount or deadline')
     }
-  }
-
-  const handleMint = () => {
-    if (!isConnected) return showToast('Connect wallet first')
-    if (isWrongChain) {
-      switchChain({ chainId: baseSepolia.id })
-      return showToast('Switching to Base Sepolia...')
-    }
-
-    setPendingAction(TX_ACTION.MINT_USDC)
-    writeContract({
-      address: USDC_ADDRESS,
-      abi: USDC_ABI,
-      functionName: 'mint',
-      args: [safeAddress, parseUnits('1000', USDC_DECIMALS)],
-      gas: 100000n,
-    })
   }
 
   useEffect(() => {
     if (!isConfirmed || !hash || lastHandledHash.current === hash) return
     lastHandledHash.current = hash
 
-    if (pendingAction === TX_ACTION.APPROVE_CREATE && pendingCreatePayload) {
-      showToast('Approval confirmed, creating task...')
-      submitCreateAndStake(pendingCreatePayload)
-      setPendingCreatePayload(null)
-      return
-    }
-
     refetchAll()
 
     if (pendingAction === TX_ACTION.CREATE_TASK) {
-      showToast('Task created and staked')
-    } else if (pendingAction === TX_ACTION.MINT_USDC) {
-      showToast('Mock USDC minted')
+      showToast('Task created and staked (Pure ETH)')
     } else {
       showToast('Transaction confirmed')
     }
 
     setPendingAction(null)
-  }, [isConfirmed, hash, pendingAction, pendingCreatePayload, refetchAll, submitCreateAndStake])
+  }, [isConfirmed, hash, pendingAction, refetchAll])
 
   const allTasks = useMemo(() => [...(userTasks || [])].reverse(), [userTasks])
   const activeTasks = useMemo(() => allTasks.filter((t) => !t.completed && !t.claimed), [allTasks])
@@ -239,41 +170,47 @@ function App() {
   const settledCount = completedCount + failedCount
   const successRate = settledCount > 0 ? Math.round((completedCount / settledCount) * 100) : 0
 
-  if (isWrongChain) {
     return (
       <div className="nuclear-locker">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="locker-content"
+          style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(7, 7, 13, 0.95)', position: 'relative' }}
         >
-          <div className="locker-icon">🛡️</div>
-          <h1 className="locker-title">SISTEM KEAMANAN WEB3 AKTIF</h1>
-          <p className="locker-desc" style={{ fontSize: '1.1rem', color: '#fff' }}>
-            <strong>JAMINAN COACH ONG:</strong> Anda sedang dilindungi dari transaksi uang asli.
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, var(--error), var(--primary))' }} />
+          <div className="locker-icon" style={{ fontSize: '4.5rem', marginBottom: '1.5rem' }}>🛡️</div>
+          <h1 className="locker-title" style={{ fontSize: '2rem', marginBottom: '1rem' }}>SISTEM KEAMANAN WEB3 V2.2.0</h1>
+          
+          <p className="locker-desc" style={{ fontSize: '1.2rem', color: '#fff', marginBottom: '1.5rem', fontWeight: 800 }}>
+            JAMINAN ABSOLUT: WALLET ANDA AMAN!
           </p>
-          <div className="locker-warning" style={{ background: 'rgba(0, 122, 255, 0.1)', borderLeft: '4px solid #007aff', color: '#007aff' }}>
-            <strong>DETEKSI OTOMATIS:</strong> Wallet Anda saat ini berada di <strong>Ethereum Mainnet (Uang Asli)</strong>. <br/><br/>
-            Sistem kami telah <strong>MEMBLOKIR</strong> website ini agar uang asli Anda tidak bisa keluar. Website ini 100% menggunakan <strong>BASE SEPOLIA (UANG PALSU/GRATIS)</strong>.
+
+          <div className="locker-warning" style={{ background: 'rgba(244, 63, 94, 0.1)', borderLeft: '4px solid var(--error)', color: 'var(--error)', padding: '1.5rem', textAlign: 'left', borderRadius: '12px', marginBottom: '2rem' }}>
+            <div style={{ fontWeight: 900, marginBottom: '0.5rem' }}>⚠️ DETEKSI JARINGAN SALAH</div>
+            Wallet Anda saat ini terdeteksi di <strong>Ethereum Mainnet (UANG ASLI)</strong>. <br/><br/>
+            Demi keamanan, sistem kami telah <strong>MEMBLOKIR TOTAL</strong> akses website ini agar tidak ada ETH asli Anda yang terpakai. Website ini 100% GRATIS dan hanya butuh <strong>BASE SEPOLIA ETH (UANG PALSU)</strong>.
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', lineHeight: '1.6' }}>
-            Biaya <strong>$0.01</strong> yang Anda lihat di MetaMask adalah "Halusinasi" karena salah jaringan. <br/>
-            Begitu Anda pindah ke Base Sepolia, biaya itu akan menjadi <strong>RP. 0 (GRATIS/TESTNET)</strong>.
+
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', lineHeight: '1.7', fontSize: '0.9rem' }}>
+            Tulisan " $0.01 " di MetaMask adalah estimasi biaya jaringan Mainnet. <br/>
+            Begitu Anda pindah ke Base Sepolia, biaya itu akan menjadi <strong>RP. 0 (GRATIS)</strong>.
           </p>
+
           <button 
             className="btn btn-primary btn-lg"
-            style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem' }}
+            style={{ width: '100%', padding: '1.4rem', fontSize: '1.1rem', borderRadius: '16px' }}
             onClick={() => switchChain({ chainId: baseSepolia.id })}
           >
-            AMANKAN WALLET: PINDAH KE BASE SEPOLIA
+            VERIFIKASI & PINDAH KE BASE SEPOLIA
           </button>
-          <p className="locker-footer">
-            Verifikasi Kode: <strong>V2.0.2-SECURE-HANDSHAKE</strong>
+          
+          <p className="locker-footer" style={{ marginTop: '2rem', fontWeight: 700, opacity: 0.6 }}>
+            Security Framework: <strong>ULTIMATE SECURITY V2.2.0</strong>
           </p>
         </motion.div>
       </div>
     )
-  }
 
   return (
     <div className="app-wrapper">
@@ -284,7 +221,6 @@ function App() {
       </div>
       <Header
         onConnectClick={() => setShowWalletModal(true)}
-        usdcBalance={usdcBalance}
         ethBalance={ethBalance?.value}
       />
       <WalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
@@ -295,12 +231,9 @@ function App() {
         <div className="main-grid">
           <section className="main-col">
             <Hero
-              usdcBalance={usdcBalance}
               ethBalance={ethBalance?.value}
-              onMint={handleMint}
-              isMinting={isMintBusy}
             />
-            {/* ... tasks controls and list ... */}
+            
             <div className="tasks-controls">
               <div className="tasks-controls-left">
                 <h3 className="tasks-heading">
@@ -395,9 +328,8 @@ function App() {
               setStakeAmount={setStakeAmount}
               onSubmit={handleCreateTask}
               isConnected={isConnected}
-              isTxPending={isFormBusy}
-              isConfirming={isConfirming && isFormBusy}
-              allowance={allowance}
+              isTxPending={isWritePending}
+              isConfirming={isConfirming}
             />
 
             <div className="card stats-card">
@@ -449,9 +381,6 @@ function App() {
           <div className="footer-links">
             <a href={`https://sepolia.basescan.org/address/${STAKE_TO_DONE_ADDRESS}`} target="_blank" rel="noreferrer">
               Contract
-            </a>
-            <a href={`https://sepolia.basescan.org/address/${USDC_ADDRESS}`} target="_blank" rel="noreferrer">
-              Mock Token
             </a>
           </div>
           <p className="footer-copy">Stake-To-Done Protocol &copy; 2026 • Built for Base</p>

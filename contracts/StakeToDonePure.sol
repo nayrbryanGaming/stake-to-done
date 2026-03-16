@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Custom Errors
 error InvalidDeadline();
 error InvalidDescription();
-error AlreadyStaked();
 error AlreadyCompleted();
 error AlreadyClaimed();
 error AlreadyProcessed();
@@ -21,11 +19,10 @@ error TransferFailed();
 error ZeroAddress();
 
 /**
- * @title StakeToDone
- * @dev A decentralized protocol facilitating commitment through automated asset management.
+ * @title StakeToDonePure
+ * @dev A decentralized protocol using native ETH for commitment.
  */
-contract StakeToDone is ReentrancyGuard, Ownable {
-    IERC20 public immutable stakingToken;
+contract StakeToDonePure is ReentrancyGuard, Ownable {
     address public treasury;
 
     struct Task {
@@ -42,55 +39,30 @@ contract StakeToDone is ReentrancyGuard, Ownable {
     mapping(uint256 => Task) public tasks;
     mapping(address => uint256[]) public userTasks;
 
-    event TaskCreated(uint256 indexed taskId, address indexed user, string description, uint256 deadline);
-    event TaskStaked(uint256 indexed taskId, address indexed user, uint256 amount);
+    event TaskCreated(uint256 indexed taskId, address indexed user, string description, uint256 deadline, uint256 amount);
     event TaskCompleted(uint256 indexed taskId, address indexed user);
     event TaskFailed(uint256 indexed taskId, address indexed user, uint256 amount);
     event TreasuryUpdated(address indexed oldTreasury, address indexed newTreasury);
 
-    constructor(address _stakingToken, address _treasury) Ownable(msg.sender) {
-        if (_stakingToken == address(0) || _treasury == address(0)) revert ZeroAddress();
-        stakingToken = IERC20(_stakingToken);
+    constructor(address _treasury) Ownable(msg.sender) {
+        if (_treasury == address(0)) revert ZeroAddress();
         treasury = _treasury;
     }
 
     /**
-     * @dev Create a new task with a description and deadline.
+     * @dev Create a task and stake native ETH in one go.
      */
-    function createTask(string memory _description, uint256 _deadline) external returns (uint256) {
+    function createAndStakeTask(string memory _description, uint256 _deadline) external payable nonReentrant returns (uint256) {
         if (bytes(_description).length == 0) revert InvalidDescription();
         if (_deadline <= block.timestamp) revert InvalidDeadline();
+        if (msg.value == 0) revert NoStakeFound();
 
         taskCounter++;
         tasks[taskCounter] = Task({
             id: taskCounter,
             user: msg.sender,
             description: _description,
-            stakeAmount: 0,
-            deadline: _deadline,
-            completed: false,
-            claimed: false
-        });
-
-        userTasks[msg.sender].push(taskCounter);
-        emit TaskCreated(taskCounter, msg.sender, _description, _deadline);
-        return taskCounter;
-    }
-
-    /**
-     * @dev Create and stake tokens for a task in one transaction.
-     */
-    function createAndStakeTask(string memory _description, uint256 _deadline, uint256 _amount) external nonReentrant returns (uint256) {
-        if (bytes(_description).length == 0) revert InvalidDescription();
-        if (_deadline <= block.timestamp) revert InvalidDeadline();
-        if (_amount == 0) revert NoStakeFound();
-
-        taskCounter++;
-        tasks[taskCounter] = Task({
-            id: taskCounter,
-            user: msg.sender,
-            description: _description,
-            stakeAmount: _amount,
+            stakeAmount: msg.value,
             deadline: _deadline,
             completed: false,
             claimed: false
@@ -98,35 +70,12 @@ contract StakeToDone is ReentrancyGuard, Ownable {
 
         userTasks[msg.sender].push(taskCounter);
         
-        if (!stakingToken.transferFrom(msg.sender, address(this), _amount)) revert TransferFailed();
-
-        emit TaskCreated(taskCounter, msg.sender, _description, _deadline);
-        emit TaskStaked(taskCounter, msg.sender, _amount);
-        
+        emit TaskCreated(taskCounter, msg.sender, _description, _deadline, msg.value);
         return taskCounter;
     }
 
     /**
-     * @dev Stake tokens for a specific task.
-     */
-    function stakeTask(uint256 _taskId, uint256 _amount) external nonReentrant {
-        Task storage task = tasks[_taskId];
-        if (task.user == address(0)) revert TaskNotFound();
-        if (task.user != msg.sender) revert NotYourTask();
-        if (task.stakeAmount > 0) revert AlreadyStaked();
-        if (task.completed) revert AlreadyCompleted();
-        if (task.claimed) revert AlreadyClaimed();
-        if (task.deadline <= block.timestamp) revert DeadlinePassed();
-        if (_amount == 0) revert NoStakeFound();
-
-        task.stakeAmount = _amount;
-        if (!stakingToken.transferFrom(msg.sender, address(this), _amount)) revert TransferFailed();
-
-        emit TaskStaked(_taskId, msg.sender, _amount);
-    }
-
-    /**
-     * @dev Mark task as completed before deadline to get stake back.
+     * @dev Mark task as completed before deadline to get ETH back.
      */
     function completeTask(uint256 _taskId) external nonReentrant {
         Task storage task = tasks[_taskId];
@@ -140,14 +89,14 @@ contract StakeToDone is ReentrancyGuard, Ownable {
         task.completed = true;
         task.claimed = true;
 
-        if (!stakingToken.transfer(msg.sender, task.stakeAmount)) revert TransferFailed();
+        (bool success, ) = payable(msg.sender).call{value: task.stakeAmount}("");
+        if (!success) revert TransferFailed();
 
         emit TaskCompleted(_taskId, msg.sender);
     }
 
     /**
-     * @dev Claim expired task stakes to treasury. Can be called by anyone 
-     *      to prune the system, but funds always go to treasury.
+     * @dev Claim expired task stakes to treasury.
      */
     function claimExpiredTask(uint256 _taskId) external nonReentrant {
         Task storage task = tasks[_taskId];
@@ -157,7 +106,8 @@ contract StakeToDone is ReentrancyGuard, Ownable {
         if (task.stakeAmount == 0) revert NoStakeFound();
 
         task.claimed = true;
-        if (!stakingToken.transfer(treasury, task.stakeAmount)) revert TransferFailed();
+        (bool success, ) = payable(treasury).call{value: task.stakeAmount}("");
+        if (!success) revert TransferFailed();
 
         emit TaskFailed(_taskId, task.user, task.stakeAmount);
     }
@@ -189,5 +139,7 @@ contract StakeToDone is ReentrancyGuard, Ownable {
         }
         return details;
     }
-}
 
+    // Allow receiving ETH
+    receive() external payable {}
+}
