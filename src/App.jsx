@@ -247,23 +247,24 @@ function App() {
           animate={{ scale: 1, opacity: 1 }}
           className="locker-content"
         >
-          <div className="locker-icon">⚠️</div>
-          <h1 className="locker-title">SECURITY LOCK ACTIVATED</h1>
+          <div className="locker-icon">🚨</div>
+          <h1 className="locker-title">BENTENG KEAMANAN AKTIF</h1>
           <p className="locker-desc">
-            Your wallet is currently connected to <strong>Ethereum Mainnet</strong>.<br/>
-            To prevent accidental loss of real funds, we have locked the interface.
+            Metamask Anda sedang di <strong>Ethereum Mainnet (UANG ASLI)</strong>.<br/>
+            Untuk menjaga uang Anda, <strong>Website ini saya KUNCI OTOMATIS</strong>.
           </p>
           <div className="locker-warning">
-            <strong>PENJELASAN:</strong> Di screenshot Anda muncul harga <strong>$0.01</strong> karena dompet Anda ada di Ethereum (Net Asli). Website ini hanya aman di <strong>Base Sepolia (Net Palsu)</strong>.
+            <strong>KUNCI JAWABAN:</strong> Jika dompet minta bayar pakai dollar ($), itu karena networknya salah. <br/><br/>
+            Begitu Anda klik tombol di bawah, simbol <strong>$</strong> akan hilang dan diganti koin <strong>Gratis</strong>.
           </div>
           <button 
             className="btn btn-primary btn-lg"
             onClick={() => switchChain({ chainId: baseSepolia.id })}
           >
-            Switch to Base Sepolia (Free/Testnet)
+            KLIK: PINDAH KE BASE SEPOLIA (GRATIS)
           </button>
           <p className="locker-footer">
-            Setelah klik tombol di atas, logo <strong>V2.0.2</strong> akan aktif dan UI akan terbuka secara aman.
+            Jika sudah ganti network, Cari logo ungu <strong>V2.0.2 - FINAL FIX</strong> di pojok kiri atas sebagai bukti Anda sudah aman.
           </p>
         </motion.div>
       </div>
