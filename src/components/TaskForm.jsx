@@ -63,7 +63,7 @@ export const TaskForm = ({
             onChange={e => setStakeAmount(e.target.value)}
           />
           <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.4rem' }}>
-            Amount is in <strong>Testnet ETH</strong> (Value: $0.00).
+            Amount is in <strong>Base Sepolia testnet ETH</strong>.
           </p>
         </div>
 

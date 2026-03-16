@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 async function main() {
-    console.log("Starting deployment of PURE ETH VERSION on Base Sepolia...");
+    console.log("Starting deployment of StakeToDonePure on Base Sepolia...");
 
     const [deployer] = await hre.ethers.getSigners();
     console.log("Deploying contracts with the account:", deployer.address);
@@ -18,15 +18,18 @@ async function main() {
 
     const fs = require("fs");
     const path = require("path");
-    
-    // Save to addresses.json
-    const addressFile = path.join(__dirname, "../addresses.json");
-    const currentAddresses = fs.existsSync(addressFile) ? JSON.parse(fs.readFileSync(addressFile)) : {};
-    currentAddresses.STAKE_TO_DONE_ADDRESS = address;
-    currentAddresses.VERSION = "v2.1.0-pure-eth";
-    fs.writeFileSync(addressFile, JSON.stringify(currentAddresses, null, 2));
 
-    console.log("Deployment complete. Version v2.1.0-pure-eth (Pure ETH) is active.");
+    // Save frontend/runtime addresses for ETH-only setup.
+    const addressFile = path.join(__dirname, "../addresses.json");
+    const addresses = {
+        STAKE_TO_DONE_ADDRESS: address,
+        TREASURY_ADDRESS: treasury,
+        NETWORK: "Base Sepolia",
+        VERSION: "v2.3.1-base-sepolia"
+    };
+    fs.writeFileSync(addressFile, JSON.stringify(addresses, null, 2));
+
+    console.log("Deployment complete. ETH-only Base Sepolia configuration is active.");
 }
 
 main().catch((error) => {

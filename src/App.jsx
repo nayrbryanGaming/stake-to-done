@@ -12,7 +12,7 @@ import {
 import { baseSepolia } from 'wagmi/chains'
 import { Search, Clock, Wallet } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { parseEther, zeroAddress, formatEther } from 'viem'
+import { parseEther, zeroAddress } from 'viem'
 import {
   STAKE_TO_DONE_ADDRESS,
   STAKE_TO_DONE_ABI,
@@ -170,31 +170,33 @@ function App() {
   const settledCount = completedCount + failedCount
   const successRate = settledCount > 0 ? Math.round((completedCount / settledCount) * 100) : 0
 
+  if (isWrongChain) {
     return (
-      <div className="nuclear-locker">
+      <div className="network-guard">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="locker-content"
+          className="guard-content"
           style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(7, 7, 13, 0.95)', position: 'relative' }}
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, var(--error), var(--primary))' }} />
-          <div className="locker-icon" style={{ fontSize: '4.5rem', marginBottom: '1.5rem' }}>🛡️</div>
-          <h1 className="locker-title" style={{ fontSize: '2rem', marginBottom: '1rem' }}>SISTEM KEAMANAN WEB3 V2.2.0</h1>
+          <div className="guard-icon" style={{ fontSize: '4.5rem', marginBottom: '1.5rem' }}>🛡️</div>
+          <h1 className="guard-title" style={{ fontSize: '2rem', marginBottom: '1rem' }}>Wrong Network Detected</h1>
           
-          <p className="locker-desc" style={{ fontSize: '1.2rem', color: '#fff', marginBottom: '1.5rem', fontWeight: 800 }}>
-            JAMINAN ABSOLUT: WALLET ANDA AMAN!
+          <p className="guard-desc" style={{ fontSize: '1.05rem', color: '#fff', marginBottom: '1.5rem', fontWeight: 700 }}>
+            This app only runs on Base Sepolia testnet.
           </p>
 
-          <div className="locker-warning" style={{ background: 'rgba(244, 63, 94, 0.1)', borderLeft: '4px solid var(--error)', color: 'var(--error)', padding: '1.5rem', textAlign: 'left', borderRadius: '12px', marginBottom: '2rem' }}>
-            <div style={{ fontWeight: 900, marginBottom: '0.5rem' }}>⚠️ DETEKSI JARINGAN SALAH</div>
-            Wallet Anda saat ini terdeteksi di <strong>Ethereum Mainnet (UANG ASLI)</strong>. <br/><br/>
-            Demi keamanan, sistem kami telah <strong>MEMBLOKIR TOTAL</strong> akses website ini agar tidak ada ETH asli Anda yang terpakai. Website ini 100% GRATIS dan hanya butuh <strong>BASE SEPOLIA ETH (UANG PALSU)</strong>.
+          <div className="guard-warning" style={{ background: 'rgba(244, 63, 94, 0.1)', borderLeft: '4px solid var(--error)', color: 'var(--error)', padding: '1.5rem', textAlign: 'left', borderRadius: '12px', marginBottom: '2rem' }}>
+            <div style={{ fontWeight: 900, marginBottom: '0.5rem' }}>⚠️ Network mismatch</div>
+            Your wallet is currently connected to another chain.
+            <br />
+            Switch to <strong>Base Sepolia (Chain ID 84532)</strong> to continue.
           </div>
 
           <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', lineHeight: '1.7', fontSize: '0.9rem' }}>
-            Tulisan " $0.01 " di MetaMask adalah estimasi biaya jaringan Mainnet. <br/>
-            Begitu Anda pindah ke Base Sepolia, biaya itu akan menjadi <strong>RP. 0 (GRATIS)</strong>.
+            Base Sepolia uses testnet ETH for gas. If you do not have balance yet,
+            request funds from a trusted Base Sepolia faucet.
           </p>
 
           <button 
@@ -202,15 +204,16 @@ function App() {
             style={{ width: '100%', padding: '1.4rem', fontSize: '1.1rem', borderRadius: '16px' }}
             onClick={() => switchChain({ chainId: baseSepolia.id })}
           >
-            VERIFIKASI & PINDAH KE BASE SEPOLIA
+            Switch to Base Sepolia
           </button>
           
-          <p className="locker-footer" style={{ marginTop: '2rem', fontWeight: 700, opacity: 0.6 }}>
-            Security Framework: <strong>ULTIMATE SECURITY V2.2.0</strong>
+          <p className="guard-footer" style={{ marginTop: '2rem', fontWeight: 700, opacity: 0.6 }}>
+            Supported network: <strong>Base Sepolia</strong>
           </p>
         </motion.div>
       </div>
     )
+  }
 
   return (
     <div className="app-wrapper">

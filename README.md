@@ -1,116 +1,131 @@
 # Stake-To-Done Protocol
 
-Decentralized commitment protocol on Base where users stake assets for task completion.
+Stake-To-Done is a Web3 productivity app on Base Sepolia where users stake testnet ETH to commit to task completion.
 
 ## 1. System Architecture
 
 ```ascii
-+------------------+          +---------------------------+
-| Browser + Wallet | <------> | React + Wagmi + Viem UI  |
-| (MetaMask)       |          | (Vite Implementation)    |
-+--------+---------+          +------------+--------------+
-         |                                 |
-         | JSON-RPC                        | Contract calls
-         v                                 v
-+----------------------------------------------------------+
-| Base Sepolia                                              |
-|  +----------------------+   +--------------------------+  |
-|  | StakeToDone.sol      |   | MockUSDC.sol (ERC-20)   |  |
-|  | - create task        |   | - 6 decimals            |  |
-|  | - stake              |   | - mint for testnet      |  |
-|  | - complete           |   +--------------------------+  |
-|  | - claim expired      |                                   |
-|  +----------------------+                                   |
-+----------------------------------------------------------+
++---------------------+        +------------------------------+
+| Browser + Wallet    | <----> | React + Vite + Wagmi + Viem |
+| MetaMask/Coinbase   |        | Frontend                     |
++----------+----------+        +---------------+--------------+
+           |                                   |
+           | JSON-RPC                          | Contract Calls
+           v                                   v
++---------------------------------------------------------------+
+| Base Sepolia (Chain ID 84532)                                |
+|                                                               |
+|  +---------------------------------------------------------+  |
+|  | StakeToDonePure.sol                                     |  |
+|  | - createAndStakeTask(description, deadline) payable     |  |
+|  | - completeTask(taskId)                                  |  |
+|  | - claimExpiredTask(taskId)                              |  |
+|  | - getUserTasks(user) / getTaskDetails(ids)             |  |
+|  +---------------------------------------------------------+  |
++---------------------------------------------------------------+
 ```
 
-## 2. Technical Stack
+## 2. Features
 
-- **Smart Contracts**: Solidity (Hardhat)
-- **Frontend**: React, Vite, Framer Motion
-- **Web3 Layer**: Wagmi, Viem, TanStack Query
-- **Styling**: Vanilla CSS (Premium Glassmorphism)
+- Create task with deadline and ETH stake
+- Complete task before deadline to reclaim stake
+- Claim expired task to treasury after deadline
+- Wallet integration with Base Sepolia only
+- Task history and live countdown UI
 
-## 3. Directory Structure
+## 3. Project Structure
 
-- `src/`: Frontend React components and logic
-- `contracts/`: Solidity smart contracts
+- `contracts/StakeToDonePure.sol`: ETH-based smart contract
+- `src/`: React frontend
+- `scripts/deploy_pure.cjs`: deployment script (Base Sepolia)
 - `test/`: Hardhat unit tests
-- `scripts/`: Deployment and utility scripts
-- `public/`: Static assets
+- `addresses.json`: deployed contract metadata
 
-## 4. Setup and Deployment
+## 4. Prerequisites
 
-1. **Installation**:
+- Node.js 20+
+- MetaMask (or other EVM wallet)
+- Base Sepolia testnet ETH from faucet
+
+## 5. Setup
+
 ```bash
 npm install
 ```
 
-2. **Configuration**:
-Create a `.env` file at the root:
-```bash
+Create `.env` in project root:
+
+```env
 BASE_SEPOLIA_RPC=https://sepolia.base.org
-PRIVATE_KEY=YOUR_PRIVATE_KEY
-TREASURY_ADDRESS=YOUR_TREASURY_ADDRESS
+PRIVATE_KEY=YOUR_TESTNET_PRIVATE_KEY
+TREASURY_ADDRESS=YOUR_TESTNET_WALLET_ADDRESS
 ```
 
-3. **Development**:
+Important: use a dedicated test wallet. Never use a main wallet private key.
+
+## 6. Run Frontend
+
 ```bash
 npm run dev
 ```
 
-4. **Production Build**:
+Open local URL shown by Vite (usually `http://localhost:5173`).
+
+## 7. Deploy Contract (Base Sepolia)
+
 ```bash
-npm run build
+npx hardhat run scripts/deploy_pure.cjs --network baseSepolia
 ```
 
-## 5. Security and Compliance
+This updates `addresses.json` with:
+- `STAKE_TO_DONE_ADDRESS`
+- `TREASURY_ADDRESS`
+- `NETWORK`
+- `VERSION`
 
-Implemented controls:
-- Reentrancy protection (OpenZeppelin)
-- Strict deadline validation
-- Multi-phase status checks
-- Owner-only administrative controls
-- 100% open-source and auditable code
+## 8. Tests
 
-## 6. License
+```bash
+npx hardhat test
+```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+## 9. Network Configuration
 
-## 7. Exam Guide (Kunci Jawaban)
+Set your wallet to:
 
-### A. Technical Explanation: Gas Fees vs Free Assets
-**Question**: Why do I need to pay with "Real ETH" if the USDC staking is free?
-**Answer**: 
-1. **Analogy**: USDC is the "Cargo", but Blockchain is the "Infrastructure". To process any transaction (moving cargo), you must pay a **Gas Fee** to the network validators.
-2. **Real vs Testnet**: In this project, the "ETH" being paid is **Testnet ETH (Base Sepolia)** which is **100% FREE** harvested from a Faucet. It is not real-world money. If your wallet shows a dollar symbol ($), ensure you are switched to **Base Sepolia**, not Ethereum Mainnet.
+- Network Name: `Base Sepolia`
+- RPC URL: `https://sepolia.base.org`
+- Chain ID: `84532`
+- Currency Symbol: `ETH`
+- Block Explorer: `https://sepolia.basescan.org`
 
-### B. Network Selection (Cheat Sheet)
-To ensure the application functions correctly, use the following settings in your EVM Wallet:
-- **Network Name**: Base Sepolia
-- **RPC URL**: `https://sepolia.base.org`
-- **Chain ID**: `84532`
-- **Currency Symbol**: `ETH`
-- **Block Explorer**: `https://sepolia.basescan.org`
+## 10. FAQ (Exam Notes)
 
-### C. Troubleshooting (Nuclear Hard Reload)
-If the layout appears broken (cached version), follow these steps:
-1. **Desktop**: Press `Ctrl + Shift + R` or `Cmd + Shift + R`.
-2. **Alternative**: Open the site in **Incognito Mode** (`Ctrl + Shift + N`).
-3. **Proof of Update**: Check the top-left corner for the **"V2.1.0 - PURE ETH"** badge.
+### Why does transaction still require ETH if this is testnet?
 
-## 8. Security & Ethics Guardrails
+Because ETH is used as gas fee by the blockchain network.
+In this project, gas uses Base Sepolia testnet ETH (not mainnet ETH).
 
-### A. Accidental Mainnet Protection
-The application includes a **"Nuclear Locker"** security layer. If a user's wallet is connected to the Ethereum Mainnet, the entire UI is disabled and replaced with a security warning. This prevents users from accidentally spending real ETH on a testnet application.
+### Why can wallet show 0 ETH after faucet?
 
-## 9. Kunci Jawaban (Dosen Review Guide) - V2.1.0 PURE ETH
+Common causes:
+- Wallet still on wrong network (not Base Sepolia)
+- Faucet sent to different wallet address
+- Faucet transaction not yet confirmed
+- RPC endpoint lagging (switch RPC and retry)
 
-### Q: Kenapa USDC dihilangkan dan ganti ETH?
-**A:** Untuk keamanan maksimal mahasiswa. USDC memerlukan "Approval" tambahan yang sering membuat mahasiswa bingung/panik. Dengan Pure ETH Base Sepolia, transaksi menjadi SATU langkah, GRATIS, dan jauh lebih stabil untuk ujian.
+### How to hard refresh if page looks stale?
 
-### Q: Apakah ini aman dari transaksi uang asli?
-**A:** 100% AMAN. Sistem "Nuclear Locker" V2.1.0 mendeteksi jika wallet berada di Mainnet dan memblokir total akses sebelum ada satu sen pun ETH asli yang bisa keluar.
+- `Ctrl + Shift + R` or `Ctrl + F5`
+- If keyboard shortcut conflicts, open Incognito and load again
+- In DevTools Network tab, enable `Disable cache` and reload
 
-### Q: Bagaimana cara verifikasi hasil kerja?
-**A:** Gunakan Base Sepolia Testnet. Saldo akan muncul sebagai ETH (Gratis). Versi terbaru adalah **V2.1.0-PURE-ETH**.
+## 11. Security Notes
+
+- Use testnet wallet only
+- Rotate any exposed private key immediately
+- Do not commit `.env` or secrets into git
+
+## 12. License
+
+MIT

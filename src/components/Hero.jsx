@@ -30,8 +30,9 @@ export const Hero = ({ ethBalance }) => {
       </h2>
 
       <p className="hero-desc">
-        A 100% decentralized commitment protocol. Stake <strong>Base Sepolia ETH (Gratis)</strong> on your tasks —
-        complete on time to reclaim your funds. This is a <strong>TESTNET</strong> environment—real money is never used.
+        A decentralized commitment protocol. Stake <strong>Base Sepolia ETH</strong> on your tasks,
+        complete on time to reclaim your funds, or let the stake expire to treasury.
+        This application is intended for <strong>testnet usage</strong>.
       </p>
 
       <div className="hero-stats-row">
@@ -39,7 +40,7 @@ export const Hero = ({ ethBalance }) => {
           <div className="hero-stat-icon" style={{ backgroundColor: 'rgba(56,189,248,0.1)', color: '#38bdf8' }}><Wallet /></div>
           <div>
             <div className="hero-stat-val">{balanceEth}</div>
-            <div className="hero-stat-label">BASE SEPOLIA ETH (Gratis)</div>
+            <div className="hero-stat-label">BASE SEPOLIA ETH</div>
           </div>
         </motion.div>
 

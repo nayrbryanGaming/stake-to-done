@@ -427,8 +427,8 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   .wallet-balance { display:none; }
 }
 
-/* ─── Nuclear Locker ───────────────────── */
-.nuclear-locker {
+/* ─── Network Guard ───────────────────── */
+.network-guard {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -442,7 +442,7 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   animation: fadeIn 0.8s ease-out;
 }
 
-.locker-content {
+.guard-content {
   max-width: 500px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -451,13 +451,13 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   box-shadow: 0 40px 100px rgba(0,0,0,0.5);
 }
 
-.locker-icon {
+.guard-icon {
   font-size: 4rem;
   margin-bottom: 1.5rem;
   animation: blink 1s infinite;
 }
 
-.locker-title {
+.guard-title {
   font-size: 1.8rem;
   font-weight: 800;
   color: #fff;
@@ -465,13 +465,13 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   letter-spacing: -0.02em;
 }
 
-.locker-desc {
+.guard-desc {
   color: rgba(255,255,255,0.7);
   line-height: 1.6;
   margin-bottom: 2rem;
 }
 
-.locker-warning {
+.guard-warning {
   background: rgba(255, 59, 48, 0.1);
   border-left: 4px solid #ff3b30;
   padding: 1.5rem;
@@ -482,7 +482,7 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   color: #ff3b30;
 }
 
-.locker-footer {
+.guard-footer {
   margin-top: 2rem;
   font-size: 0.8rem;
   color: rgba(255,255,255,0.4);
