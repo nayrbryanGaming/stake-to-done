@@ -48,21 +48,19 @@ function App() {
   const isWrongChain = isConnected && chainId !== baseSepolia.id
   const safeAddress = address ?? zeroAddress
 
-  const showToast = (msg) => {
+  const showToast = useCallback((msg) => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast({ show: true, msg })
     toastTimer.current = setTimeout(() => setToast({ show: false, msg: '' }), 4500)
-  }
+  }, [])
 
-  // FORCE NETWORK SWITCH
-  useEffect(() => {
-    if (isConnected && isWrongChain) {
-      const timer = setTimeout(() => {
-        switchChain({ chainId: baseSepolia.id })
-      }, 1500)
-      return () => clearTimeout(timer)
+  const handleSwitchToBaseSepolia = useCallback(() => {
+    try {
+      switchChain({ chainId: baseSepolia.id })
+    } catch {
+      showToast('Failed to switch network automatically. Switch manually in wallet settings.')
     }
-  }, [isConnected, isWrongChain, switchChain])
+  }, [showToast, switchChain])
 
   useEffect(() => {
     return () => {
@@ -72,9 +70,15 @@ function App() {
 
   useEffect(() => {
     if (isWrongChain) return 
-    if (writeError) showToast(writeError.shortMessage || writeError.message)
-    if (txError) showToast(txError.shortMessage || txError.message)
-  }, [writeError, txError, isWrongChain])
+    const msg = writeError?.shortMessage || writeError?.message || txError?.shortMessage || txError?.message
+    if (!msg) return
+
+    const timer = setTimeout(() => {
+      showToast(msg)
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [writeError, txError, isWrongChain, showToast])
 
   const { data: userTaskIds, refetch: refetchIds } = useReadContract({
     address: STAKE_TO_DONE_ADDRESS,
@@ -110,7 +114,7 @@ function App() {
 
     if (!isConnected) return showToast('Connect wallet first')
     if (isWrongChain) {
-      switchChain({ chainId: baseSepolia.id })
+      handleSwitchToBaseSepolia()
       return showToast('Switching to Base Sepolia...')
     }
 
@@ -134,7 +138,6 @@ function App() {
         functionName: 'createAndStakeTask',
         args: [cleanedDescription, BigInt(deadlineTimestamp)],
         value: amountWei,
-        gas: 250000n,
       })
       
       setPendingAction(TX_ACTION.CREATE_TASK)
@@ -151,14 +154,18 @@ function App() {
 
     refetchAll()
 
-    if (pendingAction === TX_ACTION.CREATE_TASK) {
-      showToast('Task created and staked (Pure ETH)')
-    } else {
-      showToast('Transaction confirmed')
-    }
+    const successMsg = pendingAction === TX_ACTION.CREATE_TASK
+      ? 'Task created and staked (Pure ETH)'
+      : 'Transaction confirmed'
 
-    setPendingAction(null)
-  }, [isConfirmed, hash, pendingAction, refetchAll])
+    const timer = setTimeout(() => {
+      showToast(successMsg)
+      setPendingAction(null)
+    }, 0)
+
+    return () => clearTimeout(timer)
+
+  }, [isConfirmed, hash, pendingAction, refetchAll, showToast])
 
   const allTasks = useMemo(() => [...(userTasks || [])].reverse(), [userTasks])
   const activeTasks = useMemo(() => allTasks.filter((t) => !t.completed && !t.claimed), [allTasks])
@@ -202,7 +209,7 @@ function App() {
           <button 
             className="btn btn-primary btn-lg"
             style={{ width: '100%', padding: '1.4rem', fontSize: '1.1rem', borderRadius: '16px' }}
-            onClick={() => switchChain({ chainId: baseSepolia.id })}
+            onClick={handleSwitchToBaseSepolia}
           >
             Switch to Base Sepolia
           </button>

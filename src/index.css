@@ -84,6 +84,7 @@ img,svg { display:block; }
 .sticky-nav {
   position:sticky; top:0; z-index:200;
   background:rgba(7,7,13,.9);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
   backdrop-filter:blur(28px) saturate(180%);
   border-bottom:1px solid var(--border);
 }
@@ -143,6 +144,7 @@ img,svg { display:block; }
 /* ── Card ────────────────────────────────────────────── */
 .card {
   background:var(--card); border:1px solid var(--border);
+  -webkit-backdrop-filter:blur(32px) saturate(140%);
   border-radius:var(--r-lg); backdrop-filter:blur(32px) saturate(140%);
   transition:var(--tr); position:relative; overflow:hidden;
 }
@@ -192,7 +194,7 @@ img,svg { display:block; }
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:.45rem;
        border:none; border-radius:var(--r-sm); font-family:'Outfit',sans-serif;
        font-weight:800; text-transform:uppercase; letter-spacing:.1em;
-       cursor:pointer; transition:var(--tr); white-space:nowrap; user-select:none; outline:none; }
+  cursor:pointer; transition:var(--tr); white-space:nowrap; -webkit-user-select:none; user-select:none; outline:none; }
 .btn svg { width:15px;height:15px;flex-shrink:0; }
 .btn-primary { background:linear-gradient(135deg,var(--primary),var(--secondary)); color:#fff; box-shadow:var(--sp); }
 .btn-primary:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 12px 36px rgba(99,102,241,.5); filter:brightness(1.08); }
@@ -355,14 +357,14 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
 .toast       { display:flex;align-items:center;gap:.8rem;background:rgba(7,7,13,.97);
                border:1px solid var(--border);border-left:3px solid var(--primary);
                border-radius:var(--r);padding:.85rem 1.2rem;box-shadow:0 20px 60px rgba(0,0,0,.75);
-               min-width:270px;max-width:360px;backdrop-filter:blur(20px); }
+               min-width:270px;max-width:360px;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px); }
 .toast-icon  { width:30px;height:30px;border-radius:8px;background:rgba(99,102,241,.15);
                display:flex;align-items:center;justify-content:center;flex-shrink:0; }
 .toast-icon svg { width:15px;height:15px;color:var(--primary); }
 .toast-msg   { font-size:.8rem;font-weight:700;color:#fff; }
 
 /* ── Wallet modal ────────────────────────────────────── */
-.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);
+.modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.78);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
                  z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem; }
 .modal-box     { background:#0d0d17;border:1px solid var(--border);border-radius:var(--r-xl);
                  padding:2rem;width:100%;max-width:400px;position:relative;overflow:hidden;
@@ -433,6 +435,7 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   inset: 0;
   z-index: 9999;
   background: radial-gradient(circle at center, #111115 0%, #000 100%);
+  -webkit-backdrop-filter: blur(30px);
   backdrop-filter: blur(30px);
   display: flex;
   align-items: center;
