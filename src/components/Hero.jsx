@@ -44,18 +44,10 @@ export const Hero = ({ ethBalance }) => {
           </div>
         </Motion.div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginLeft: '2rem' }}>
-          <a 
-            href="https://www.coinbase.com/faucet/base-sepolia" 
-            target="_blank" 
-            rel="noreferrer"
-            className="btn btn-primary"
-            style={{ fontSize: '0.85rem', padding: '0.8rem 1.5rem', fontWeight: 800 }}
-          >
-            Get Free Testnet ETH
-          </a>
-          <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>
-            Official Coinbase Faucet
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '2rem' }}>
+          <p style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.72)', maxWidth: '210px', lineHeight: 1.45 }}>
+            Faucet providers can change URLs at any time.
+            Use any trusted Base Sepolia faucet available in your wallet/provider.
           </p>
         </div>
       </div>

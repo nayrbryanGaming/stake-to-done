@@ -128,6 +128,15 @@ Common causes:
 - Faucet transaction not yet confirmed
 - RPC endpoint lagging (switch RPC and retry)
 
+### Why can a faucet link show 404 for some users?
+
+Common causes:
+- Faucet URL was changed by provider
+- Provider requires login, region support, or anti-bot checks
+- Old bookmark points to a removed page
+
+For exams/demo, avoid relying on one fixed faucet URL in presentation slides.
+
 ### How to hard refresh if page looks stale?
 
 - `Ctrl + Shift + R` or `Ctrl + F5`
