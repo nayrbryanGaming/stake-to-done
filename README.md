@@ -98,3 +98,14 @@ If the layout appears broken (cached version), follow these steps:
 1. **Desktop**: Press `Ctrl + Shift + R` or `Cmd + Shift + R`.
 2. **Alternative**: Open the site in **Incognito Mode** (`Ctrl + Shift + N`).
 3. **Proof of Update**: Check the top-left corner for the **"V2.0.2 - FINAL FIX"** badge.
+
+## 8. Security & Ethics Guardrails
+
+### A. Accidental Mainnet Protection
+The application includes a **"Nuclear Locker"** security layer. If a user's wallet is connected to the Ethereum Mainnet, the entire UI is disabled and replaced with a security warning. This prevents users from accidentally spending real ETH on a testnet application.
+
+### B. Legal & Ethical Use of Testnets
+As per industry standard and educational requirements:
+- All assets (ETH and USDC) used in this project are **Testnet Assets**.
+- They have no real-world value and are for development/educational purposes only.
+- Utilizing Base Sepolia for case studies is a legal, safe, and encouraged practice for blockchain students.

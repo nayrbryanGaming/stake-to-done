@@ -433,3 +433,63 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
   .search-wrap { width:100%; }
   .wallet-balance { display:none; }
 }
+
+/* ─── Nuclear Locker ───────────────────── */
+.nuclear-locker {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10, 10, 12, 0.98);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.locker-content {
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3rem;
+  border-radius: 2rem;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+}
+
+.locker-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  animation: blink 1s infinite;
+}
+
+.locker-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.locker-desc {
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.locker-warning {
+  background: rgba(255, 59, 48, 0.1);
+  border-left: 4px solid #ff3b30;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  color: #ff3b30;
+}
+
+.locker-footer {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.4);
+}

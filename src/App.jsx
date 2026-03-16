@@ -239,10 +239,36 @@ function App() {
   const settledCount = completedCount + failedCount
   const successRate = settledCount > 0 ? Math.round((completedCount / settledCount) * 100) : 0
 
-  const isFormBusy =
-    (pendingAction === TX_ACTION.APPROVE_CREATE || pendingAction === TX_ACTION.CREATE_TASK) &&
-    (isWritePending || isConfirming)
-  const isMintBusy = pendingAction === TX_ACTION.MINT_USDC && (isWritePending || isConfirming)
+  if (isWrongChain) {
+    return (
+      <div className="nuclear-locker">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="locker-content"
+        >
+          <div className="locker-icon">⚠️</div>
+          <h1 className="locker-title">SECURITY LOCK ACTIVATED</h1>
+          <p className="locker-desc">
+            Your wallet is currently connected to <strong>Ethereum Mainnet</strong>.<br/>
+            To prevent accidental loss of real funds, we have locked the interface.
+          </p>
+          <div className="locker-warning">
+            <strong>PENJELASAN:</strong> Di screenshot Anda muncul harga <strong>$0.01</strong> karena dompet Anda ada di Ethereum (Net Asli). Website ini hanya aman di <strong>Base Sepolia (Net Palsu)</strong>.
+          </div>
+          <button 
+            className="btn btn-primary btn-lg"
+            onClick={() => switchChain({ chainId: baseSepolia.id })}
+          >
+            Switch to Base Sepolia (Free/Testnet)
+          </button>
+          <p className="locker-footer">
+            Setelah klik tombol di atas, logo <strong>V2.0.2</strong> akan aktif dan UI akan terbuka secara aman.
+          </p>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <div className="app-wrapper">
@@ -258,19 +284,6 @@ function App() {
       />
       <WalletModal isOpen={showWalletModal} onClose={() => setShowWalletModal(false)} />
 
-      {isConnected && console.log('DEBUG: Current Chain ID:', chainId)}
-
-      {isWrongChain && (
-        <div className="extreme-banner">
-          ⚠️ WRONG NETWORK DETECTED: PLEASE SWITCH TO BASE SEPOLIA ⚠️
-          <div style={{ marginTop: '0.5rem' }}>
-            <button className="btn btn-glass btn-sm" onClick={() => switchChain({ chainId: baseSepolia.id })}>
-              Force Switch to Base Sepolia
-            </button>
-          </div>
-        </div>
-      )}
-
       <Toast show={toast.show} msg={toast.msg} />
 
       <main className="container">
@@ -282,7 +295,7 @@ function App() {
               onMint={handleMint}
               isMinting={isMintBusy}
             />
-
+            {/* ... tasks controls and list ... */}
             <div className="tasks-controls">
               <div className="tasks-controls-left">
                 <h3 className="tasks-heading">
