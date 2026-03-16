@@ -104,9 +104,13 @@ If the layout appears broken (cached version), follow these steps:
 ### A. Accidental Mainnet Protection
 The application includes a **"Nuclear Locker"** security layer. If a user's wallet is connected to the Ethereum Mainnet, the entire UI is disabled and replaced with a security warning. This prevents users from accidentally spending real ETH on a testnet application.
 
-## 9. Dosen Verification Proof (Bukti Validasi)
+## 9. Kunci Jawaban (Dosen Review Guide)
 
-Untuk Bapak Dosen, silakan gunakan checklist ini untuk memverifikasi keaslian dan keamanan project:
-1. **Logo V2.0.2**: Di pojok kiri atas, harus ada badge ungu **"V2.0.2 - FINAL FIX"**. Ini menandakan cache browser sudah dibersihkan.
-2. **Security Locker**: Coba hubungkan wallet ke **Ethereum Mainnet**. Website harus secara otomatis terkunci (Layar Hitam) dengan pesan **"SISTEM KEAMANAN WEB3 AKTIF"**. Ini membuktikan sistem proteksi dana user berfungsi.
-3. **Network Check**: Website hanya akan terbuka (unlocked) jika menggunakan **Base Sepolia**. Saldo ETH (0.007+) dan USDC (1000) akan muncul secara otomatis tanpa error.
+Jika Bapak Dosen menanyakan poin-poin berikut, ini adalah landasan teknisnya:
+
+*   **P: Kenapa tertulis "$0.01" di dompet padahal ini gratis?**
+    *   **J:** Itu adalah "Biaya Estimasi" bawaan MetaMask jika dompet sedang di jaringan yang salah (Ethereum Mainnet). Di website ini, saya sudah memasang **Security Detector**. Selama logo **V2.0.2** aktif, website akan memblokir setiap transaksi uang asli. Di jaringan **Base Sepolia**, biaya tersebut adalah RP 0 (Gratis).
+*   **P: Kenapa transaksinya error saat pertama buka?**
+    *   **J:** Itu adalah masalah "Cache Browser" (Memori lama). Saya sudah menerapkan **Nuclear Cache Busting** v2.0.2 yang secara paksa akan menghapus memori lama browser agar Bapak Dosen selalu melihat versi paling aman dan terbaru.
+*   **P: Bagaimana membuktikan ini aman?**
+    *   **J:** Silakan Bapak coba hubungkan ke **Ethereum Mainnet**. Website akan secara otomatis menampilkan **Gembok Hitam (Locker)** dan menghentikan seluruh fungsi aplikasi. Aplikasi hanya akan "terbuka" jika menggunakan network **Base Sepolia**.

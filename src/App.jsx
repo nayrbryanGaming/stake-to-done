@@ -256,8 +256,9 @@ function App() {
             <strong>DETEKSI OTOMATIS:</strong> Wallet Anda saat ini berada di <strong>Ethereum Mainnet (Uang Asli)</strong>. <br/><br/>
             Sistem kami telah <strong>MEMBLOKIR</strong> website ini agar uang asli Anda tidak bisa keluar. Website ini 100% menggunakan <strong>BASE SEPOLIA (UANG PALSU/GRATIS)</strong>.
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem' }}>
-            Biaya <strong>$0.01</strong> yang Anda lihat di MetaMask adalah "Halusinasi" karena salah jaringan. Begitu Anda pindah ke Base Sepolia, biaya itu akan menjadi <strong>RP. 0 (GRATIS)</strong>.
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '2rem', lineHeight: '1.6' }}>
+            Biaya <strong>$0.01</strong> yang Anda lihat di MetaMask adalah "Halusinasi" karena salah jaringan. <br/>
+            Begitu Anda pindah ke Base Sepolia, biaya itu akan menjadi <strong>RP. 0 (GRATIS/TESTNET)</strong>.
           </p>
           <button 
             className="btn btn-primary btn-lg"
@@ -453,7 +454,7 @@ function App() {
               Mock Token
             </a>
           </div>
-          <p className="footer-copy">Stake-To-Done 2026</p>
+          <p className="footer-copy">Stake-To-Done Protocol &copy; 2026 • Built for Base</p>
         </div>
       </footer>
     </div>
