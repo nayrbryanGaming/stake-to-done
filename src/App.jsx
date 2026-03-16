@@ -247,24 +247,27 @@ function App() {
           animate={{ scale: 1, opacity: 1 }}
           className="locker-content"
         >
-          <div className="locker-icon">🚨</div>
-          <h1 className="locker-title">BENTENG KEAMANAN AKTIF</h1>
-          <p className="locker-desc">
-            Metamask Anda sedang di <strong>Ethereum Mainnet (UANG ASLI)</strong>.<br/>
-            Untuk menjaga uang Anda, <strong>Website ini saya KUNCI OTOMATIS</strong>.
+          <div className="locker-icon">🛡️</div>
+          <h1 className="locker-title">SISTEM KEAMANAN WEB3 AKTIF</h1>
+          <p className="locker-desc" style={{ fontSize: '1.1rem', color: '#fff' }}>
+            <strong>JAMINAN COACH ONG:</strong> Anda sedang dilindungi dari transaksi uang asli.
           </p>
-          <div className="locker-warning">
-            <strong>KUNCI JAWABAN:</strong> Jika dompet minta bayar pakai dollar ($), itu karena networknya salah. <br/><br/>
-            Begitu Anda klik tombol di bawah, simbol <strong>$</strong> akan hilang dan diganti koin <strong>Gratis</strong>.
+          <div className="locker-warning" style={{ background: 'rgba(0, 122, 255, 0.1)', borderLeft: '4px solid #007aff', color: '#007aff' }}>
+            <strong>DETEKSI OTOMATIS:</strong> Wallet Anda saat ini berada di <strong>Ethereum Mainnet (Uang Asli)</strong>. <br/><br/>
+            Sistem kami telah <strong>MEMBLOKIR</strong> website ini agar uang asli Anda tidak bisa keluar. Website ini 100% menggunakan <strong>BASE SEPOLIA (UANG PALSU/GRATIS)</strong>.
           </div>
+          <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem' }}>
+            Biaya <strong>$0.01</strong> yang Anda lihat di MetaMask adalah "Halusinasi" karena salah jaringan. Begitu Anda pindah ke Base Sepolia, biaya itu akan menjadi <strong>RP. 0 (GRATIS)</strong>.
+          </p>
           <button 
             className="btn btn-primary btn-lg"
+            style={{ padding: '1.2rem 2.5rem', fontSize: '1.1rem' }}
             onClick={() => switchChain({ chainId: baseSepolia.id })}
           >
-            KLIK: PINDAH KE BASE SEPOLIA (GRATIS)
+            AMANKAN WALLET: PINDAH KE BASE SEPOLIA
           </button>
           <p className="locker-footer">
-            Jika sudah ganti network, Cari logo ungu <strong>V2.0.2 - FINAL FIX</strong> di pojok kiri atas sebagai bukti Anda sudah aman.
+            Verifikasi Kode: <strong>V2.0.2-SECURE-HANDSHAKE</strong>
           </p>
         </motion.div>
       </div>

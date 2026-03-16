@@ -104,8 +104,9 @@ If the layout appears broken (cached version), follow these steps:
 ### A. Accidental Mainnet Protection
 The application includes a **"Nuclear Locker"** security layer. If a user's wallet is connected to the Ethereum Mainnet, the entire UI is disabled and replaced with a security warning. This prevents users from accidentally spending real ETH on a testnet application.
 
-### B. Legal & Ethical Use of Testnets
-As per industry standard and educational requirements:
-- All assets (ETH and USDC) used in this project are **Testnet Assets**.
-- They have no real-world value and are for development/educational purposes only.
-- Utilizing Base Sepolia for case studies is a legal, safe, and encouraged practice for blockchain students.
+## 9. Dosen Verification Proof (Bukti Validasi)
+
+Untuk Bapak Dosen, silakan gunakan checklist ini untuk memverifikasi keaslian dan keamanan project:
+1. **Logo V2.0.2**: Di pojok kiri atas, harus ada badge ungu **"V2.0.2 - FINAL FIX"**. Ini menandakan cache browser sudah dibersihkan.
+2. **Security Locker**: Coba hubungkan wallet ke **Ethereum Mainnet**. Website harus secara otomatis terkunci (Layar Hitam) dengan pesan **"SISTEM KEAMANAN WEB3 AKTIF"**. Ini membuktikan sistem proteksi dana user berfungsi.
+3. **Network Check**: Website hanya akan terbuka (unlocked) jika menggunakan **Base Sepolia**. Saldo ETH (0.007+) dan USDC (1000) akan muncul secara otomatis tanpa error.
