@@ -76,3 +76,25 @@ Implemented controls:
 ## 6. License
 
 Distributed under the MIT License. See `LICENSE` for more information.
+
+## 7. Exam Guide (Kunci Jawaban)
+
+### A. Technical Explanation: Gas Fees vs Free Assets
+**Question**: Why do I need to pay with "Real ETH" if the USDC staking is free?
+**Answer**: 
+1. **Analogy**: USDC is the "Cargo", but Blockchain is the "Infrastructure". To process any transaction (moving cargo), you must pay a **Gas Fee** to the network validators.
+2. **Real vs Testnet**: In this project, the "ETH" being paid is **Testnet ETH (Base Sepolia)** which is **100% FREE** harvested from a Faucet. It is not real-world money. If your wallet shows a dollar symbol ($), ensure you are switched to **Base Sepolia**, not Ethereum Mainnet.
+
+### B. Network Selection (Cheat Sheet)
+To ensure the application functions correctly, use the following settings in your EVM Wallet:
+- **Network Name**: Base Sepolia
+- **RPC URL**: `https://sepolia.base.org`
+- **Chain ID**: `84532`
+- **Currency Symbol**: `ETH`
+- **Block Explorer**: `https://sepolia.basescan.org`
+
+### C. Troubleshooting (Nuclear Hard Reload)
+If the layout appears broken (cached version), follow these steps:
+1. **Desktop**: Press `Ctrl + Shift + R` or `Cmd + Shift + R`.
+2. **Alternative**: Open the site in **Incognito Mode** (`Ctrl + Shift + N`).
+3. **Proof of Update**: Check the top-left corner for the **"V2.0.2 - FINAL FIX"** badge.
