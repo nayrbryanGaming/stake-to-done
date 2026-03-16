@@ -105,6 +105,20 @@ Set your wallet to:
 
 Because ETH is used as gas fee by the blockchain network.
 In this project, gas uses Base Sepolia testnet ETH (not mainnet ETH).
+Base Sepolia ETH comes from faucet and is for testing only.
+
+### Why is USDC removed and replaced with ETH-only?
+
+This repository now uses a single contract flow with native ETH only:
+- Stake is sent through `msg.value` in `createAndStakeTask`.
+- No ERC-20 approval step is required.
+- No USDC contract address is needed in frontend or scripts.
+
+### Why can browser with wallet extension show more errors?
+
+Wallet extensions inject providers and can trigger extra chain/network checks.
+If network is not Base Sepolia, the app blocks actions and asks for network switch.
+Use one active wallet extension at a time and ensure chain is `84532`.
 
 ### Why can wallet show 0 ETH after faucet?
 
