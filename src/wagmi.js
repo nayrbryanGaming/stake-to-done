@@ -3,6 +3,8 @@ import { baseSepolia } from 'wagmi/chains'
 import { coinbaseWallet, metaMask, walletConnect } from 'wagmi/connectors'
 
 export const config = createConfig({
+  // Show only connectors explicitly configured below.
+  multiInjectedProviderDiscovery: false,
   chains: [baseSepolia],
   connectors: [
     metaMask(),
