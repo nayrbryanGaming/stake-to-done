@@ -7,7 +7,6 @@ import { STAKE_TO_DONE_ADDRESS, VERSION } from '../constants'
 
 const WALLET_DESCS = {
   MetaMask: 'Browser extension & mobile wallet',
-  Injected: 'Browser injected wallet',
   'Coinbase Wallet': 'Coinbase self-custody wallet',
 }
 
