@@ -1,5 +1,5 @@
 export const STAKE_TO_DONE_ADDRESS = "0xfd547B157f1926b0899CfEc1095eECE65e8cBEAc";
-export const VERSION = "v2.3.1-base-sepolia";
+export const VERSION = "v2.3.2-base-sepolia";
 
 export const STAKE_TO_DONE_ABI = [
     {
