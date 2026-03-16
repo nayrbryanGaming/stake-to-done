@@ -1,6 +1,6 @@
 import { Target, Coins, Wallet } from 'lucide-react'
 import { formatEther } from 'viem'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 
 export const Hero = ({ ethBalance }) => {
   const balanceEth = ethBalance
@@ -11,7 +11,7 @@ export const Hero = ({ ethBalance }) => {
     : '0.0000'
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
@@ -36,13 +36,13 @@ export const Hero = ({ ethBalance }) => {
       </p>
 
       <div className="hero-stats-row">
-        <motion.div className="hero-stat-card" whileHover={{ scale: 1.02 }} style={{ flex: 1 }}>
+        <Motion.div className="hero-stat-card" whileHover={{ scale: 1.02 }} style={{ flex: 1 }}>
           <div className="hero-stat-icon" style={{ backgroundColor: 'rgba(56,189,248,0.1)', color: '#38bdf8' }}><Wallet /></div>
           <div>
             <div className="hero-stat-val">{balanceEth}</div>
             <div className="hero-stat-label">BASE SEPOLIA ETH</div>
           </div>
-        </motion.div>
+        </Motion.div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginLeft: '2rem' }}>
           <a 
@@ -59,6 +59,6 @@ export const Hero = ({ ethBalance }) => {
           </p>
         </div>
       </div>
-    </motion.div>
+    </Motion.div>
   )
 }

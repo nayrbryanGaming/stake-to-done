@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useConnect, useAccount, useDisconnect } from 'wagmi'
 import { formatEther } from 'viem'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { Zap, Bell, X, ChevronRight, Wallet } from 'lucide-react'
 import { STAKE_TO_DONE_ADDRESS, VERSION } from '../constants'
 
@@ -23,7 +23,7 @@ export const Header = ({ onConnectClick, ethBalance }) => {
     : '0.00'
 
   return (
-    <motion.header
+    <Motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -31,9 +31,9 @@ export const Header = ({ onConnectClick, ethBalance }) => {
     >
       <div className="nav-inner">
         <div className="nav-logo">
-          <motion.div className="logo-icon" whileHover={{ rotate: 12, scale: 1.08 }}>
+          <Motion.div className="logo-icon" whileHover={{ rotate: 12, scale: 1.08 }}>
             <Zap />
-          </motion.div>
+          </Motion.div>
           <div className="logo-text">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="logo-name">STAKE-TO-DONE PROTOCOL</span>
@@ -70,28 +70,28 @@ export const Header = ({ onConnectClick, ethBalance }) => {
                   {address?.slice(0, 6)}…{address?.slice(-4)}
                 </span>
               </div>
-              <motion.button
+              <Motion.button
                 className="btn btn-glass btn-sm"
                 style={{ borderColor: 'rgba(244,63,94,.2)', color: 'var(--error)' }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => disconnect()}
               >
                 Disconnect
-              </motion.button>
+              </Motion.button>
             </div>
           ) : (
-            <motion.button
+            <Motion.button
               className="btn btn-primary btn-md"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
               onClick={onConnectClick}
             >
               <Wallet /> Connect Wallet
-            </motion.button>
+            </Motion.button>
           )}
         </div>
       </div>
-    </motion.header>
+    </Motion.header>
   )
 }
 
@@ -108,12 +108,12 @@ export const WalletModal = ({ isOpen, onClose }) => {
 
   return (
     <AnimatePresence>
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         className="modal-overlay"
         onClick={onClose}
       >
-        <motion.div
+        <Motion.div
           initial={{ scale: 0.9, opacity: 0, y: 24 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 24 }}
@@ -131,7 +131,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
 
           <div className="wallet-options">
             {connectors.map(connector => (
-              <motion.button
+              <Motion.button
                 key={connector.uid}
                 className="wallet-option"
                 whileTap={{ scale: 0.98 }}
@@ -152,7 +152,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
                 {isPending
                   ? <div className="spinner-small" />
                   : <span className="wallet-option-arrow"><ChevronRight /></span>}
-              </motion.button>
+              </Motion.button>
             ))}
           </div>
 
@@ -165,8 +165,8 @@ export const WalletModal = ({ isOpen, onClose }) => {
           <p style={{ marginTop:'1.2rem',fontSize:'.62rem',color:'var(--muted)',textAlign:'center',lineHeight:1.5 }}>
             Open-source protocol — only uses Base Sepolia Testnet.
           </p>
-        </motion.div>
-      </motion.div>
+        </Motion.div>
+      </Motion.div>
     </AnimatePresence>
   )
 }
@@ -175,7 +175,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
 export const Toast = ({ show, msg }) => (
   <AnimatePresence>
     {show && (
-      <motion.div
+      <Motion.div
         initial={{ y: 30, opacity: 0, scale: 0.9 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 30, opacity: 0, scale: 0.9 }}
@@ -185,7 +185,7 @@ export const Toast = ({ show, msg }) => (
           <div className="toast-icon"><Bell /></div>
           <p className="toast-msg">{msg}</p>
         </div>
-      </motion.div>
+      </Motion.div>
     )}
   </AnimatePresence>
 )

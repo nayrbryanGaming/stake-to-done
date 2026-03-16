@@ -1,5 +1,5 @@
 import { Zap, ArrowRight } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 
 export const TaskForm = ({
   description, setDescription,
@@ -17,20 +17,20 @@ export const TaskForm = ({
   }
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
       className="card form-card"
     >
       <div className="form-card-header">
-        <motion.div
+        <Motion.div
           className="icon-widget icon-widget-primary"
           whileHover={{ rotate: 180 }}
           transition={{ duration: 0.5 }}
         >
           <Zap />
-        </motion.div>
+        </Motion.div>
         <h3 className="form-card-title">New Commitment</h3>
       </div>
 
@@ -67,7 +67,7 @@ export const TaskForm = ({
           </p>
         </div>
 
-        <motion.button
+        <Motion.button
           type="submit"
           className="btn btn-primary btn-lg btn-full"
           style={{ marginTop: '0.5rem' }}
@@ -76,8 +76,8 @@ export const TaskForm = ({
           disabled={isTxPending || isConfirming}
         >
           {btnLabel()} <ArrowRight />
-        </motion.button>
+        </Motion.button>
       </form>
-    </motion.div>
+    </Motion.div>
   )
 }

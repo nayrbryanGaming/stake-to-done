@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { motion as Motion } from 'framer-motion'
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { formatEther } from 'viem'
 import confetti from 'canvas-confetti'
 import { CheckCircle, Flame, ShieldCheck, Zap, Clock, Coins, Trophy, AlertCircle } from 'lucide-react'
@@ -17,7 +17,6 @@ const fmt = (s) => {
 }
 
 export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) => {
-  const { address } = useAccount()
   const { writeContract, data: hash, isPending: txPending } = useWriteContract()
   const { isLoading: txCfm, isSuccess: txOk } = useWaitForTransactionReceipt({ hash })
   const [now, setNow] = useState(Math.floor(Date.now() / 1000))
@@ -35,8 +34,12 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
   }, [])
 
   useEffect(() => {
-    if (txOk) { rft(); refetchAll(); notify('Transaction confirmed!') }
-  }, [txOk])
+    if (txOk) {
+      rft()
+      refetchAll()
+      notify('Transaction confirmed!')
+    }
+  }, [txOk, notify, refetchAll, rft])
 
   useEffect(() => {
     const done = task && (task.completed ?? task[5])
@@ -78,13 +81,13 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
   }
 
   return (
-    <motion.div layout initial={{ opacity:0, scale:.97 }} animate={{ opacity:1, scale:1 }} whileHover={{ y:-3 }}
+    <Motion.div layout initial={{ opacity:0, scale:.97 }} animate={{ opacity:1, scale:1 }} whileHover={{ y:-3 }}
       className={`card task-card ${sc}`}>
       <div className="task-header">
-        <motion.div whileHover={{ rotate:360 }} transition={{ duration:.7 }}
+        <Motion.div whileHover={{ rotate:360 }} transition={{ duration:.7 }}
           className={`icon-widget icon-widget-lg ${done?'icon-widget-success':clmd?'icon-widget-error':staked?'icon-widget-warning':'icon-widget-primary'}`}>
           {done?<CheckCircle/>:clmd?<Flame/>:staked?<ShieldCheck/>:<Zap/>}
-        </motion.div>
+        </Motion.div>
         <div className="task-body">
           <div className="task-badges">
             <span className="badge badge-dim">#{String(tid)}</span>
@@ -122,16 +125,16 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
           {staked ? (
             <>
               {!expired && (
-                <motion.button className="btn btn-success btn-sm" whileHover={{scale:1.04}} whileTap={{scale:.96}}
+                <Motion.button className="btn btn-success btn-sm" whileHover={{scale:1.04}} whileTap={{scale:.96}}
                   onClick={doAction} disabled={txPending||txCfm}>
                   {txCfm?'Confirming…':txPending?'Submitting…':'Mark Complete'}<Trophy/>
-                </motion.button>
+                </Motion.button>
               )}
               {expired && (
-                <motion.button className="btn btn-danger btn-sm" whileHover={{scale:1.04}} whileTap={{scale:.96}}
+                <Motion.button className="btn btn-danger btn-sm" whileHover={{scale:1.04}} whileTap={{scale:.96}}
                   onClick={doClaim} disabled={txPending||txCfm}>
                   {txPending?'Claiming…':'Claim Expired'}<Flame/>
-                </motion.button>
+                </Motion.button>
               )}
             </>
           ) : (
@@ -139,6 +142,6 @@ export const TaskItem = ({ id, initialTask, searchQuery, notify, refetchAll }) =
           )}
         </div>
       )}
-    </motion.div>
+    </Motion.div>
   )
 }

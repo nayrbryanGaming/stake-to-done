@@ -11,7 +11,7 @@ import {
 } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { Search, Clock, Wallet } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { parseEther, zeroAddress } from 'viem'
 import {
   STAKE_TO_DONE_ADDRESS,
@@ -173,7 +173,7 @@ function App() {
   if (isWrongChain) {
     return (
       <div className="network-guard">
-        <motion.div 
+        <Motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="guard-content"
@@ -210,7 +210,7 @@ function App() {
           <p className="guard-footer" style={{ marginTop: '2rem', fontWeight: 700, opacity: 0.6 }}>
             Supported network: <strong>Base Sepolia</strong>
           </p>
-        </motion.div>
+        </Motion.div>
       </div>
     )
   }
@@ -269,7 +269,7 @@ function App() {
             </div>
 
             {!isConnected ? (
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="card empty-state"
@@ -282,9 +282,9 @@ function App() {
                 <button className="btn btn-primary btn-sm" onClick={() => setShowWalletModal(true)}>
                   Connect Wallet
                 </button>
-              </motion.div>
+              </Motion.div>
             ) : displayTasks.length === 0 ? (
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="card empty-state"
@@ -298,11 +298,11 @@ function App() {
                     ? 'Complete or expire tasks to see history here.'
                     : 'Create your first commitment from the form on the right.'}
                 </p>
-              </motion.div>
+              </Motion.div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                 {displayTasks.map((task, index) => (
-                  <motion.div
+                  <Motion.div
                     key={task.id.toString()}
                     initial={{ opacity: 0, x: -12 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -315,7 +315,7 @@ function App() {
                       notify={showToast}
                       refetchAll={refetchAll}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             )}
