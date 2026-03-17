@@ -3,6 +3,9 @@ import { baseSepolia } from 'wagmi/chains'
 import { coinbaseWallet, injected } from 'wagmi/connectors'
 
 export const config = createConfig({
+  // Keep wallet session in-memory only to avoid stale persisted connector objects.
+  // This prevents `connector.getChainId is not a function` after app/version changes.
+  storage: null,
   // Detect all EIP-6963 injected wallets (MetaMask, Rabby, OKX, etc.).
   multiInjectedProviderDiscovery: true,
   chains: [baseSepolia],
