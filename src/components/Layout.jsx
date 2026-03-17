@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useConnect, useAccount, useDisconnect, useSwitchChain } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { formatEther } from 'viem'
@@ -115,12 +115,27 @@ export const WalletModal = ({ isOpen, onClose }) => {
   const { connectAsync, connectors, isPending, error: connectError } = useConnect()
   const { switchChainAsync } = useSwitchChain()
   const { isConnected } = useAccount()
+  const hasStaleReloadAttempt = useRef(false)
 
   const visibleConnectors = getVisibleConnectors(connectors)
+  const connectErrorMessage = connectError?.shortMessage || connectError?.message || ''
+  const isStaleBundleError = /could not resolve/i.test(connectErrorMessage) && /@wagmi\/connectors/i.test(connectErrorMessage)
 
   useEffect(() => {
     if (isConnected && isOpen) onClose()
   }, [isConnected, isOpen, onClose])
+
+  useEffect(() => {
+    if (!isStaleBundleError) return
+    if (hasStaleReloadAttempt.current) return
+    hasStaleReloadAttempt.current = true
+
+    const timer = setTimeout(() => {
+      window.location.reload()
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [isStaleBundleError])
 
   if (!isOpen) return null
 
@@ -195,7 +210,9 @@ export const WalletModal = ({ isOpen, onClose }) => {
 
           {connectError && (
             <div className="wallet-error">
-              {connectError.shortMessage || connectError.message}
+              {isStaleBundleError
+                ? 'Outdated app bundle detected. Auto-refreshing now...'
+                : connectErrorMessage}
             </div>
           )}
 
