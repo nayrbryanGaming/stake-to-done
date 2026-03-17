@@ -1,8 +1,87 @@
-# Stake-To-Done Protocol
+# StakeToDone Protocol
 
-Stake-To-Done is a Web3 productivity app on Base Sepolia where users stake testnet ETH to commit to task completion.
+Onchain commitment protocol for productivity.
+Stake crypto. Complete your task. Or lose your stake.
 
-## 1. System Architecture
+## Overview
+
+StakeToDone is a decentralized productivity protocol built on Base Sepolia.
+
+It transforms personal commitments into enforceable onchain actions by introducing financial accountability.
+
+Users stake testnet ETH when committing to a task:
+
+- Complete task: reclaim stake
+- Miss deadline: stake can be claimed by treasury flow
+
+This uses behavioral economics (loss aversion) to improve follow-through on real work.
+
+## Problem
+
+Procrastination is universal.
+
+Most productivity apps rely on reminders and self-discipline only.
+There is no hard consequence for not completing commitments.
+
+## Solution
+
+StakeToDone introduces financial commitment as a protocol primitive.
+
+By staking ETH:
+
+- users create real consequences,
+- commitments become verifiable onchain,
+- accountability becomes automatic.
+
+No trusted middleman is required.
+
+## How It Works
+
+### User Flow
+
+1. Connect wallet.
+2. Create task description and deadline.
+3. Stake Base Sepolia ETH.
+4. Complete task before deadline or let it expire.
+5. Execute completion or expiry claim flow onchain.
+
+### Outcomes
+
+| Status | Result |
+| --- | --- |
+| Completed | Funds can be reclaimed by task owner via completion flow |
+| Expired | Funds can be moved by expiry claim flow (treasury path) |
+
+## Example
+
+Task: Finish MVP feature
+Stake: 0.001 ETH (Base Sepolia)
+Deadline: 24 hours
+
+- Completed before deadline: user marks task complete
+- Missed deadline: task becomes claimable by expiry logic
+
+## Why Blockchain
+
+Traditional apps cannot enforce trustless commitments.
+
+Smart contracts provide:
+
+- trustless escrow behavior,
+- automatic execution,
+- transparent state,
+- no intermediary control.
+
+## Built With
+
+- Base Sepolia (Chain ID 84532)
+- Solidity
+- Hardhat
+- React + Vite
+- wagmi + viem
+- TanStack Query
+
+## Architecture
 
 ```ascii
 +---------------------+        +------------------------------+
@@ -25,29 +104,63 @@ Stake-To-Done is a Web3 productivity app on Base Sepolia where users stake testn
 +---------------------------------------------------------------+
 ```
 
-## 2. Features
+## Repository Structure
 
-- Create task with deadline and ETH stake
-- Complete task before deadline to reclaim stake
-- Claim expired task to treasury after deadline
-- Wallet integration with Base Sepolia only
-- Task history and live countdown UI
+```text
+stake-to-done/
+|- contracts/
+|  `- StakeToDonePure.sol
+|- scripts/
+|  |- deploy_pure.cjs
+|  |- deploy.js
+|  |- fund_user.js
+|  `- check_balance.js
+|- src/
+|  |- App.jsx
+|  |- wagmi.js
+|  `- components/
+|- test/
+|  `- StakeToDone.cjs
+|- addresses.json
+`- hardhat.config.cjs
+```
 
-## 3. Project Structure
+## Smart Contract Design
 
-- `contracts/StakeToDonePure.sol`: ETH-based smart contract
-- `src/`: React frontend
-- `scripts/deploy_pure.cjs`: deployment script (Base Sepolia)
-- `test/`: Hardhat unit tests
-- `addresses.json`: deployed contract metadata
+```solidity
+struct Task {
+    uint256 id;
+    address user;
+    string description;
+    uint256 stakeAmount;
+    uint256 deadline;
+    bool completed;
+    bool claimed;
+}
+```
 
-## 4. Prerequisites
+Core functions:
+
+- `createAndStakeTask(string,uint256)`
+- `completeTask(uint256)`
+- `claimExpiredTask(uint256)`
+- `getUserTasks(address)`
+- `getTaskDetails(uint256[])`
+
+Key properties:
+
+- stake is held by contract logic,
+- deadline is enforced onchain,
+- no centralized operator is needed,
+- all task states are publicly auditable.
+
+## Prerequisites
 
 - Node.js 20+
-- MetaMask (or other EVM wallet)
-- Base Sepolia testnet ETH balance in wallet
+- EVM wallet (MetaMask/Coinbase Wallet/etc.)
+- Base Sepolia ETH for gas and stake
 
-## 5. Setup
+## Installation
 
 ```bash
 npm install
@@ -61,85 +174,87 @@ PRIVATE_KEY=YOUR_TESTNET_PRIVATE_KEY
 TREASURY_ADDRESS=YOUR_TESTNET_WALLET_ADDRESS
 ```
 
-Important: use a dedicated test wallet. Never use a main wallet private key.
+Use a dedicated test wallet only. Never use a main wallet private key.
 
-## 6. Run Frontend
+## Run Frontend
 
 ```bash
 npm run dev
 ```
 
-Open local URL shown by Vite (usually `http://localhost:5173`).
+Open Vite local URL (usually `http://localhost:5173`).
 
-## 7. Deploy Contract (Base Sepolia)
+## Deploy Contract
 
 ```bash
 npx hardhat run scripts/deploy_pure.cjs --network baseSepolia
 ```
 
-This updates `addresses.json` with:
-- `STAKE_TO_DONE_ADDRESS`
-- `TREASURY_ADDRESS`
-- `NETWORK`
-- `VERSION`
+This updates `addresses.json` with deployed metadata, including version tag.
 
-## 8. Tests
+## Test
 
 ```bash
 npx hardhat test
 ```
 
-## 9. Network Configuration
+## Deploy Frontend
 
-Set your wallet to:
+This project is configured for Vercel (`vercel.json` included).
 
-- Network Name: `Base Sepolia`
-- RPC URL: `https://sepolia.base.org`
-- Chain ID: `84532`
-- Currency Symbol: `ETH`
-- Block Explorer: `https://sepolia.basescan.org`
+1. Push repository to GitHub.
+2. Import project in Vercel.
+3. Deploy with build command `npm run build`.
 
-## 10. FAQ (Exam Notes)
+## Security Notes
 
-### Why does transaction still require ETH if this is testnet?
+- Use `ReentrancyGuard` patterns where applicable.
+- Validate deadlines and task ownership checks.
+- Prevent double execution of completion/claim paths.
+- Never commit secrets (`PRIVATE_KEY`, API keys, etc.).
 
-Because ETH is used as gas fee by the blockchain network.
-In this project, gas uses Base Sepolia testnet ETH (not mainnet ETH).
-Base Sepolia ETH here is testnet-only and has no mainnet monetary value.
+This is an MVP and should be audited before production usage.
 
-### Why is USDC removed and replaced with ETH-only?
+## Roadmap
 
-This repository now uses a single contract flow with native ETH only:
-- Stake is sent through `msg.value` in `createAndStakeTask`.
-- No ERC-20 approval step is required.
-- No USDC contract address is needed in frontend or scripts.
+### Phase 1
 
-### Why can browser with wallet extension show more errors?
+- Core staking and task lifecycle
+- Wallet integration
+- Basic dashboard and history
 
-Wallet extensions inject providers and can trigger extra chain/network checks.
-If network is not Base Sepolia, the app blocks actions and asks for network switch.
-Use one active wallet extension at a time and ensure chain is `84532`.
+### Phase 2
 
-### Why can wallet show 0 ETH on Base Sepolia?
+- Leaderboard and profile layer
+- Better analytics for completion rate
+- Richer social proof elements
 
-Common causes:
-- Wallet still on wrong network (not Base Sepolia)
-- Funds sent to a different wallet address
-- Transfer transaction not yet confirmed
-- RPC endpoint lagging (switch RPC and retry)
+### Phase 3
 
-### How to hard refresh if page looks stale?
+- Group challenges
+- Reputation primitives
+- Mobile-first client
 
-- `Ctrl + Shift + R` or `Ctrl + F5`
-- If keyboard shortcut conflicts, open Incognito and load again
-- In DevTools Network tab, enable `Disable cache` and reload
+## Vision
 
-## 11. Security Notes
+StakeToDone aims to become a commitment layer for onchain productivity.
 
-- Use testnet wallet only
-- Rotate any exposed private key immediately
-- Do not commit `.env` or secrets into git
+Potential expansions:
 
-## 12. License
+- habit staking,
+- team accountability rails,
+- DAO contributor commitment systems,
+- AI-assisted execution workflows.
+
+## Contributing
+
+Contributions are welcome:
+
+- UI/UX improvements,
+- contract optimization,
+- security hardening,
+- feature development.
+
+## License
 
 MIT
