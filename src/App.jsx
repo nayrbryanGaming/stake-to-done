@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   useAccount,
   useReadContract,
+  usePublicClient,
   useWriteContract,
   useWaitForTransactionReceipt,
   useChainId,
@@ -12,6 +13,7 @@ import {
 import { baseSepolia } from 'wagmi/chains'
 import { Search, Clock, Wallet } from 'lucide-react'
 import { motion as Motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { parseEther, zeroAddress } from 'viem'
 import {
   STAKE_TO_DONE_ADDRESS,
@@ -24,6 +26,20 @@ import { TaskItem } from './components/TaskItem'
 
 const TX_ACTION = {
   CREATE_TASK: 'create_task',
+}
+
+const TASK_READ_CHUNK_SIZE = 20
+const BASE_SEPOLIA_CHAIN_HEX = `0x${baseSepolia.id.toString(16)}`
+const BASE_SEPOLIA_CHAIN_PARAMS = {
+  chainId: BASE_SEPOLIA_CHAIN_HEX,
+  chainName: 'Base Sepolia',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: [
+    'https://sepolia.base.org',
+    'https://base-sepolia-rpc.publicnode.com',
+    'https://base-sepolia.blockpi.network/v1/rpc/public',
+  ],
+  blockExplorerUrls: ['https://sepolia.basescan.org'],
 }
 
 const normalizeChainId = (rawChainId) => {
@@ -40,8 +56,11 @@ const normalizeChainId = (rawChainId) => {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+const readTaskFlag = (task, key, index) => Boolean(task?.[key] ?? task?.[index])
+
 function App() {
   const { address, isConnected, connector } = useAccount()
+  const publicClient = usePublicClient({ chainId: baseSepolia.id })
   const chainId = useChainId()
   const { switchChain, switchChainAsync } = useSwitchChain()
   const { writeContract, data: hash, isPending: isWritePending, error: writeError } = useWriteContract()
@@ -58,6 +77,7 @@ function App() {
 
   const toastTimer = useRef(null)
   const lastHandledHash = useRef(null)
+  const lastTaskLoadWarning = useRef('')
 
   const isWrongChain = isConnected && chainId !== baseSepolia.id
   const safeAddress = address ?? zeroAddress
@@ -68,8 +88,43 @@ function App() {
     toastTimer.current = setTimeout(() => setToast({ show: false, msg: '' }), 4500)
   }, [])
 
+  const switchProviderToBaseSepolia = useCallback(async (provider) => {
+    if (!provider?.request) return false
+
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: BASE_SEPOLIA_CHAIN_HEX }],
+      })
+      return true
+    } catch (error) {
+      const code = error?.code
+      const msg = (error?.message || '').toLowerCase()
+      const needsAddChain = code === 4902 || msg.includes('unrecognized chain') || msg.includes('unknown chain')
+      if (!needsAddChain) return false
+
+      try {
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [BASE_SEPOLIA_CHAIN_PARAMS],
+        })
+        await provider.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: BASE_SEPOLIA_CHAIN_HEX }],
+        })
+        return true
+      } catch {
+        return false
+      }
+    }
+  }, [])
+
   const handleSwitchToBaseSepolia = useCallback(async () => {
     try {
+      const provider = await connector?.getProvider?.()
+      const switchedByProvider = await switchProviderToBaseSepolia(provider)
+      if (switchedByProvider) return true
+
       if (typeof switchChainAsync === 'function') {
         await switchChainAsync({ chainId: baseSepolia.id })
       } else {
@@ -80,7 +135,7 @@ function App() {
       showToast('Failed to switch network automatically. Switch manually in wallet settings.')
       return false
     }
-  }, [showToast, switchChain, switchChainAsync])
+  }, [connector, showToast, switchChain, switchChainAsync, switchProviderToBaseSepolia])
 
   const getProviderChainId = useCallback(async () => {
     try {
@@ -138,14 +193,69 @@ function App() {
   })
 
   const taskIds = useMemo(() => userTaskIds || [], [userTaskIds])
+  const taskIdsKey = useMemo(() => taskIds.map((id) => id.toString()).join(','), [taskIds])
 
-  const { data: userTasks, refetch: refetchTasks } = useReadContract({
-    address: STAKE_TO_DONE_ADDRESS,
-    abi: STAKE_TO_DONE_ABI,
-    functionName: 'getTaskDetails',
-    args: [taskIds],
-    query: { enabled: isConnected && !isWrongChain && taskIds.length > 0 },
+  const { data: taskQueryData, isLoading: isTasksQueryLoading, refetch: refetchTasks } = useQuery({
+    queryKey: ['user-tasks-chunked', safeAddress, chainId, taskIdsKey],
+    enabled: isConnected && !isWrongChain && !!publicClient && taskIds.length > 0,
+    staleTime: 5000,
+    queryFn: async () => {
+      const loaded = []
+      let failedReads = 0
+
+      for (let i = 0; i < taskIds.length; i += TASK_READ_CHUNK_SIZE) {
+        const chunk = taskIds.slice(i, i + TASK_READ_CHUNK_SIZE)
+        const results = await Promise.all(
+          chunk.map(async (id) => {
+            try {
+              return await publicClient.readContract({
+                address: STAKE_TO_DONE_ADDRESS,
+                abi: STAKE_TO_DONE_ABI,
+                functionName: 'tasks',
+                args: [id],
+              })
+            } catch {
+              failedReads += 1
+              return null
+            }
+          }),
+        )
+
+        for (const task of results) {
+          if (task) loaded.push(task)
+        }
+      }
+
+      return {
+        tasks: loaded,
+        failedReads,
+        total: taskIds.length,
+      }
+    },
   })
+
+  const userTasks = useMemo(() => {
+    if (!isConnected || isWrongChain || taskIds.length === 0) return []
+    return taskQueryData?.tasks || []
+  }, [isConnected, isWrongChain, taskIds.length, taskQueryData])
+
+  const tasksLoading = isConnected && !isWrongChain && taskIds.length > 0 && isTasksQueryLoading
+
+  useEffect(() => {
+    const failedReads = taskQueryData?.failedReads || 0
+    const total = taskQueryData?.total || 0
+    if (failedReads === 0 || total === 0) return
+
+    const warningKey = `${failedReads}/${total}/${taskIdsKey}`
+    if (lastTaskLoadWarning.current === warningKey) return
+    lastTaskLoadWarning.current = warningKey
+
+    const timer = setTimeout(() => {
+      showToast(`Loaded ${total - failedReads}/${total} tasks. Retry if some tasks are still missing.`)
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [showToast, taskIdsKey, taskQueryData])
 
   const { data: ethBalance, refetch: refetchEth } = useBalance({
     address: safeAddress,
@@ -153,10 +263,10 @@ function App() {
   })
 
   const refetchAll = useCallback(() => {
-    refetchIds()
-    refetchTasks()
-    refetchEth()
-  }, [refetchIds, refetchTasks, refetchEth])
+    void refetchIds()
+    void refetchTasks()
+    void refetchEth()
+  }, [refetchEth, refetchIds, refetchTasks])
 
   const handleCreateTask = async (e) => {
     e.preventDefault()
@@ -204,7 +314,9 @@ function App() {
     if (!isConfirmed || !hash || lastHandledHash.current === hash) return
     lastHandledHash.current = hash
 
-    refetchAll()
+    const refetchTimer = setTimeout(() => {
+      refetchAll()
+    }, 0)
 
     const successMsg = pendingAction === TX_ACTION.CREATE_TASK
       ? 'Task created and staked (Pure ETH)'
@@ -215,17 +327,20 @@ function App() {
       setPendingAction(null)
     }, 0)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(refetchTimer)
+      clearTimeout(timer)
+    }
 
   }, [isConfirmed, hash, pendingAction, refetchAll, showToast])
 
   const allTasks = useMemo(() => [...(userTasks || [])].reverse(), [userTasks])
-  const activeTasks = useMemo(() => allTasks.filter((t) => !t.completed && !t.claimed), [allTasks])
-  const historyTasks = useMemo(() => allTasks.filter((t) => t.completed || t.claimed), [allTasks])
+  const activeTasks = useMemo(() => allTasks.filter((t) => !readTaskFlag(t, 'completed', 5) && !readTaskFlag(t, 'claimed', 6)), [allTasks])
+  const historyTasks = useMemo(() => allTasks.filter((t) => readTaskFlag(t, 'completed', 5) || readTaskFlag(t, 'claimed', 6)), [allTasks])
   const displayTasks = showHistory ? historyTasks : activeTasks
 
-  const completedCount = useMemo(() => allTasks.filter((t) => t.completed).length, [allTasks])
-  const failedCount = useMemo(() => allTasks.filter((t) => t.claimed && !t.completed).length, [allTasks])
+  const completedCount = useMemo(() => allTasks.filter((t) => readTaskFlag(t, 'completed', 5)).length, [allTasks])
+  const failedCount = useMemo(() => allTasks.filter((t) => readTaskFlag(t, 'claimed', 6) && !readTaskFlag(t, 'completed', 5)).length, [allTasks])
   const settledCount = completedCount + failedCount
   const successRate = settledCount > 0 ? Math.round((completedCount / settledCount) * 100) : 0
 
@@ -349,6 +464,18 @@ function App() {
                 <button className="btn btn-primary btn-sm" onClick={() => setShowWalletModal(true)}>
                   Connect Wallet
                 </button>
+              </Motion.div>
+            ) : tasksLoading ? (
+              <Motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="card empty-state"
+              >
+                <div className="empty-state-icon">
+                  <Clock />
+                </div>
+                <h4 className="empty-state-title">Loading tasks...</h4>
+                <p className="empty-state-desc">Fetching on-chain tasks from Base Sepolia.</p>
               </Motion.div>
             ) : displayTasks.length === 0 ? (
               <Motion.div

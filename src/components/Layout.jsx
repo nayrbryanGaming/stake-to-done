@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { useConnect, useAccount, useDisconnect } from 'wagmi'
+import { useConnect, useAccount, useDisconnect, useSwitchChain } from 'wagmi'
+import { baseSepolia } from 'wagmi/chains'
 import { formatEther } from 'viem'
 import { motion as Motion, AnimatePresence } from 'framer-motion'
 import { Zap, Bell, X, ChevronRight, Wallet } from 'lucide-react'
@@ -98,7 +99,8 @@ export const Header = ({ onConnectClick, ethBalance }) => {
 
 /* ─── Wallet Modal ──────────────────────── */
 export const WalletModal = ({ isOpen, onClose }) => {
-  const { connect, connectors, isPending, error: connectError } = useConnect()
+  const { connectAsync, connectors, isPending, error: connectError } = useConnect()
+  const { switchChainAsync } = useSwitchChain()
   const { isConnected } = useAccount()
 
   const visibleConnectors = connectors.filter((connector) => ALLOWED_CONNECTOR_NAMES.has(connector.name))
@@ -108,6 +110,18 @@ export const WalletModal = ({ isOpen, onClose }) => {
   }, [isConnected, isOpen, onClose])
 
   if (!isOpen) return null
+
+  const handleConnect = async (connector) => {
+    await connectAsync({ connector })
+
+    try {
+      if (typeof switchChainAsync === 'function') {
+        await switchChainAsync({ chainId: baseSepolia.id })
+      }
+    } catch {
+      // App-level guard will enforce Base Sepolia again before transaction.
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -144,7 +158,9 @@ export const WalletModal = ({ isOpen, onClose }) => {
                 className="wallet-option"
                 whileTap={{ scale: 0.98 }}
                 disabled={isPending}
-                onClick={() => connect({ connector })}
+                onClick={() => {
+                  void handleConnect(connector)
+                }}
               >
                 <div className="wallet-option-img">
                   {connector.icon
