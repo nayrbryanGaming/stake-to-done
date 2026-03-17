@@ -8,10 +8,9 @@ import { STAKE_TO_DONE_ADDRESS, VERSION } from '../constants'
 const WALLET_DESCS = {
   MetaMask: 'Browser extension & mobile wallet',
   'Coinbase Wallet': 'Coinbase self-custody wallet',
-  WalletConnect: 'Connect with QR / mobile wallet',
 }
 
-const ALLOWED_CONNECTORS = new Set(['metaMask', 'coinbaseWallet', 'walletConnect'])
+const ALLOWED_CONNECTOR_NAMES = new Set(['MetaMask', 'Coinbase Wallet'])
 
 /* ─── Header ────────────────────────────── */
 export const Header = ({ onConnectClick, ethBalance }) => {
@@ -102,7 +101,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
   const { connect, connectors, isPending, error: connectError } = useConnect()
   const { isConnected } = useAccount()
 
-  const visibleConnectors = connectors.filter((connector) => ALLOWED_CONNECTORS.has(connector.id))
+  const visibleConnectors = connectors.filter((connector) => ALLOWED_CONNECTOR_NAMES.has(connector.name))
 
   useEffect(() => {
     if (isConnected && isOpen) onClose()
@@ -134,6 +133,11 @@ export const WalletModal = ({ isOpen, onClose }) => {
           </div>
 
           <div className="wallet-options">
+            {visibleConnectors.length === 0 && (
+              <div className="wallet-error" style={{ marginTop: 0 }}>
+                No supported wallet detected. Install MetaMask or Coinbase Wallet extension.
+              </div>
+            )}
             {visibleConnectors.map(connector => (
               <Motion.button
                 key={connector.uid}
