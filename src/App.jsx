@@ -8,7 +8,6 @@ import {
   useChainId,
   useSwitchChain,
   useBalance,
-  useWalletClient,
 } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
 import { Search, Clock, Wallet } from 'lucide-react'
@@ -30,7 +29,6 @@ const TX_ACTION = {
 function App() {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
-  const { data: walletClient } = useWalletClient()
   const { switchChain } = useSwitchChain()
   const { writeContract, data: hash, isPending: isWritePending, error: writeError } = useWriteContract()
   const { isLoading: isConfirming, isSuccess: isConfirmed, error: txError } = useWaitForTransactionReceipt({ hash })
@@ -47,10 +45,7 @@ function App() {
   const toastTimer = useRef(null)
   const lastHandledHash = useRef(null)
 
-  const walletChainId = walletClient?.chain?.id
   const isWrongChain = isConnected && chainId !== baseSepolia.id
-  const isWalletWrongChain = isConnected && walletChainId != null && walletChainId !== baseSepolia.id
-  const hasChainMismatch = isWrongChain || isWalletWrongChain
   const safeAddress = address ?? zeroAddress
 
   const showToast = useCallback((msg) => {
@@ -74,7 +69,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (hasChainMismatch) return 
+    if (isWrongChain) return 
     const msg = writeError?.shortMessage || writeError?.message || txError?.shortMessage || txError?.message
     if (!msg) return
 
@@ -83,14 +78,14 @@ function App() {
     }, 0)
 
     return () => clearTimeout(timer)
-  }, [writeError, txError, hasChainMismatch, showToast])
+  }, [writeError, txError, isWrongChain, showToast])
 
   const { data: userTaskIds, refetch: refetchIds } = useReadContract({
     address: STAKE_TO_DONE_ADDRESS,
     abi: STAKE_TO_DONE_ABI,
     functionName: 'getUserTasks',
     args: [safeAddress],
-    query: { enabled: isConnected && !hasChainMismatch },
+    query: { enabled: isConnected && !isWrongChain },
   })
 
   const taskIds = useMemo(() => userTaskIds || [], [userTaskIds])
@@ -100,12 +95,12 @@ function App() {
     abi: STAKE_TO_DONE_ABI,
     functionName: 'getTaskDetails',
     args: [taskIds],
-    query: { enabled: isConnected && !hasChainMismatch && taskIds.length > 0 },
+    query: { enabled: isConnected && !isWrongChain && taskIds.length > 0 },
   })
 
   const { data: ethBalance, refetch: refetchEth } = useBalance({
     address: safeAddress,
-    query: { enabled: isConnected && !hasChainMismatch, refetchInterval: 5000 },
+    query: { enabled: isConnected && !isWrongChain, refetchInterval: 5000 },
   })
 
   const refetchAll = useCallback(() => {
@@ -118,13 +113,9 @@ function App() {
     e.preventDefault()
 
     if (!isConnected || !address) return showToast('Connect wallet first')
-    if (hasChainMismatch) {
+    if (isWrongChain) {
       handleSwitchToBaseSepolia()
       return showToast('Wallet must be on Base Sepolia (84532).')
-    }
-
-    if (walletChainId == null) {
-      return showToast('Wallet network not detected yet. Reconnect wallet and retry.')
     }
 
     const cleanedDescription = description.trim()
@@ -189,7 +180,7 @@ function App() {
   const settledCount = completedCount + failedCount
   const successRate = settledCount > 0 ? Math.round((completedCount / settledCount) * 100) : 0
 
-  if (hasChainMismatch) {
+  if (isWrongChain) {
     return (
       <div className="network-guard">
         <Motion.div 
@@ -211,10 +202,10 @@ function App() {
             Your wallet is currently connected to another chain.
             <br />
             Switch to <strong>Base Sepolia (Chain ID 84532)</strong> to continue.
-            {walletChainId != null && walletChainId !== baseSepolia.id && (
+            {chainId != null && chainId !== baseSepolia.id && (
               <>
                 <br />
-                Detected wallet chain: <strong>{walletChainId}</strong>
+                Detected wallet chain: <strong>{chainId}</strong>
               </>
             )}
           </div>
