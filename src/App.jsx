@@ -18,6 +18,7 @@ import { parseEther, zeroAddress } from 'viem'
 import {
   STAKE_TO_DONE_ADDRESS,
   STAKE_TO_DONE_ABI,
+  VERSION,
 } from './constants'
 import { Header, Toast, WalletModal } from './components/Layout'
 import { Hero } from './components/Hero'
@@ -78,6 +79,7 @@ function App() {
   const toastTimer = useRef(null)
   const lastHandledHash = useRef(null)
   const lastTaskLoadWarning = useRef('')
+  const hasAutoReloaded = useRef(false)
 
   const isWrongChain = isConnected && chainId !== baseSepolia.id
   const safeAddress = address ?? zeroAddress
@@ -184,6 +186,32 @@ function App() {
     return () => clearTimeout(timer)
   }, [writeError, txError, isWrongChain, showToast])
 
+  useEffect(() => {
+    const checkLatestVersion = async () => {
+      try {
+        const response = await fetch(`/addresses.json?ts=${Date.now()}`, { cache: 'no-store' })
+        if (!response.ok) return
+
+        const payload = await response.json()
+        const deployedVersion = payload?.VERSION
+        if (!deployedVersion || deployedVersion === VERSION) return
+        if (hasAutoReloaded.current) return
+
+        hasAutoReloaded.current = true
+        window.location.reload()
+      } catch {
+        // Ignore temporary network failures and try again on next interval.
+      }
+    }
+
+    void checkLatestVersion()
+    const intervalId = setInterval(() => {
+      void checkLatestVersion()
+    }, 30000)
+
+    return () => clearInterval(intervalId)
+  }, [])
+
   const { data: userTaskIds, refetch: refetchIds } = useReadContract({
     address: STAKE_TO_DONE_ADDRESS,
     abi: STAKE_TO_DONE_ABI,
@@ -267,6 +295,16 @@ function App() {
     void refetchTasks()
     void refetchEth()
   }, [refetchEth, refetchIds, refetchTasks])
+
+  useEffect(() => {
+    if (!isConnected || isWrongChain) return
+
+    const intervalId = setInterval(() => {
+      refetchAll()
+    }, 5000)
+
+    return () => clearInterval(intervalId)
+  }, [isConnected, isWrongChain, refetchAll])
 
   const handleCreateTask = async (e) => {
     e.preventDefault()
