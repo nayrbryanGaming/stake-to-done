@@ -7,10 +7,11 @@ export const TaskForm = ({
   stakeAmount, setStakeAmount,
   onSubmit,
   isConnected,
-  isTxPending, isConfirming,
+  isTxPending, isAwaitingWalletApproval, isConfirming,
 }) => {
   const btnLabel = () => {
     if (!isConnected)   return 'Connect Wallet First'
+    if (isAwaitingWalletApproval) return 'Awaiting Wallet Approval...'
     if (isConfirming)   return 'Confirming…'
     if (isTxPending)    return 'Submitting…'
     return 'Create & Stake ETH'

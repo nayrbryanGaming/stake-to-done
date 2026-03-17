@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-// Stake-To-Done Protocol (Pure ETH Version)
 import {
   useAccount,
   useReadContract,
@@ -11,7 +10,7 @@ import {
   useBalance,
 } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
-import { Search, Clock, Wallet } from 'lucide-react'
+import { Search, Clock, Wallet, ExternalLink } from 'lucide-react'
 import { motion as Motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { parseEther, zeroAddress } from 'viem'
@@ -64,8 +63,18 @@ function App() {
   const publicClient = usePublicClient({ chainId: baseSepolia.id })
   const chainId = useChainId()
   const { switchChain, switchChainAsync } = useSwitchChain()
-  const { writeContract, data: hash, isPending: isWritePending, error: writeError } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess: isConfirmed, error: txError } = useWaitForTransactionReceipt({ hash })
+  const {
+    writeContract,
+    writeContractAsync,
+    data: hash,
+    isPending: isWritePending,
+    error: writeError,
+  } = useWriteContract()
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    error: txError,
+  } = useWaitForTransactionReceipt({ hash })
 
   const [description, setDescription] = useState('')
   const [deadline, setDeadline] = useState('')
@@ -75,8 +84,11 @@ function App() {
   const [showWalletModal, setShowWalletModal] = useState(false)
   const [toast, setToast] = useState({ show: false, msg: '' })
   const [pendingAction, setPendingAction] = useState(null)
+  const [isAwaitingWalletApproval, setIsAwaitingWalletApproval] = useState(false)
+  const [latestSubmittedHash, setLatestSubmittedHash] = useState('')
 
   const toastTimer = useRef(null)
+  const walletApprovalTimer = useRef(null)
   const lastHandledHash = useRef(null)
   const lastTaskLoadWarning = useRef('')
   const hasAutoReloaded = useRef(false)
@@ -88,6 +100,12 @@ function App() {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast({ show: true, msg })
     toastTimer.current = setTimeout(() => setToast({ show: false, msg: '' }), 4500)
+  }, [])
+
+  const clearWalletApprovalTimer = useCallback(() => {
+    if (!walletApprovalTimer.current) return
+    clearTimeout(walletApprovalTimer.current)
+    walletApprovalTimer.current = null
   }, [])
 
   const switchProviderToBaseSepolia = useCallback(async (provider) => {
@@ -171,20 +189,24 @@ function App() {
   useEffect(() => {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current)
+      clearWalletApprovalTimer()
     }
-  }, [])
+  }, [clearWalletApprovalTimer])
 
   useEffect(() => {
-    if (isWrongChain) return 
+    if (isWrongChain) return
     const msg = writeError?.shortMessage || writeError?.message || txError?.shortMessage || txError?.message
     if (!msg) return
 
     const timer = setTimeout(() => {
+      clearWalletApprovalTimer()
+      setIsAwaitingWalletApproval(false)
+      setPendingAction(null)
       showToast(msg)
     }, 0)
 
     return () => clearTimeout(timer)
-  }, [writeError, txError, isWrongChain, showToast])
+  }, [clearWalletApprovalTimer, writeError, txError, isWrongChain, showToast])
 
   useEffect(() => {
     const checkLatestVersion = async () => {
@@ -327,26 +349,70 @@ function App() {
       }
 
       const amountWei = parseEther(stakeAmount)
-      
-      showToast('Submitting task...')
-      writeContract({
-        chainId: baseSepolia.id,
-        account: address,
-        address: STAKE_TO_DONE_ADDRESS,
-        abi: STAKE_TO_DONE_ABI,
-        functionName: 'createAndStakeTask',
-        args: [cleanedDescription, BigInt(deadlineTimestamp)],
-        value: amountWei,
-      })
-      
+      setIsAwaitingWalletApproval(true)
+      clearWalletApprovalTimer()
+      walletApprovalTimer.current = setTimeout(() => {
+        setIsAwaitingWalletApproval(false)
+        setPendingAction(null)
+        showToast('Wallet approval timed out. Reopen wallet and submit again on Base Sepolia.')
+      }, 45000)
+
+      showToast('Awaiting wallet approval...')
+
+      const txHash = typeof writeContractAsync === 'function'
+        ? await writeContractAsync({
+            chainId: baseSepolia.id,
+            account: address,
+            address: STAKE_TO_DONE_ADDRESS,
+            abi: STAKE_TO_DONE_ABI,
+            functionName: 'createAndStakeTask',
+            args: [cleanedDescription, BigInt(deadlineTimestamp)],
+            value: amountWei,
+          })
+        : (() => {
+            writeContract({
+              chainId: baseSepolia.id,
+              account: address,
+              address: STAKE_TO_DONE_ADDRESS,
+              abi: STAKE_TO_DONE_ABI,
+              functionName: 'createAndStakeTask',
+              args: [cleanedDescription, BigInt(deadlineTimestamp)],
+              value: amountWei,
+            })
+            return ''
+          })()
+
+      clearWalletApprovalTimer()
+      setIsAwaitingWalletApproval(false)
       setPendingAction(TX_ACTION.CREATE_TASK)
+
+      if (txHash) {
+        setLatestSubmittedHash(txHash)
+        showToast(`Transaction submitted: ${txHash.slice(0, 10)}...`)
+      }
+
       setDescription('')
       setDeadline('')
     } catch (error) {
+      clearWalletApprovalTimer()
+      setIsAwaitingWalletApproval(false)
+      setPendingAction(null)
       const msg = error?.shortMessage || error?.message
-      showToast(msg || 'Invalid stake amount or deadline')
+      showToast(msg || 'Transaction request failed')
     }
   }
+
+  useEffect(() => {
+    if (!hash) return
+
+    const timer = setTimeout(() => {
+      clearWalletApprovalTimer()
+      setIsAwaitingWalletApproval(false)
+      setLatestSubmittedHash((prev) => (prev === hash ? prev : hash))
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [clearWalletApprovalTimer, hash])
 
   useEffect(() => {
     if (!isConfirmed || !hash || lastHandledHash.current === hash) return
@@ -361,6 +427,8 @@ function App() {
       : 'Transaction confirmed'
 
     const timer = setTimeout(() => {
+      clearWalletApprovalTimer()
+      setIsAwaitingWalletApproval(false)
       showToast(successMsg)
       setPendingAction(null)
     }, 0)
@@ -369,8 +437,7 @@ function App() {
       clearTimeout(refetchTimer)
       clearTimeout(timer)
     }
-
-  }, [isConfirmed, hash, pendingAction, refetchAll, showToast])
+  }, [clearWalletApprovalTimer, isConfirmed, hash, pendingAction, refetchAll, showToast])
 
   const allTasks = useMemo(() => [...(userTasks || [])].reverse(), [userTasks])
   const activeTasks = useMemo(() => allTasks.filter((t) => !readTaskFlag(t, 'completed', 5) && !readTaskFlag(t, 'claimed', 6)), [allTasks])
@@ -381,26 +448,27 @@ function App() {
   const failedCount = useMemo(() => allTasks.filter((t) => readTaskFlag(t, 'claimed', 6) && !readTaskFlag(t, 'completed', 5)).length, [allTasks])
   const settledCount = completedCount + failedCount
   const successRate = settledCount > 0 ? Math.round((completedCount / settledCount) * 100) : 0
+  const isTxPendingForUi = isAwaitingWalletApproval || (isWritePending && !!hash)
 
   if (isWrongChain) {
     return (
       <div className="network-guard">
-        <Motion.div 
+        <Motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="guard-content"
           style={{ border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(7, 7, 13, 0.95)', position: 'relative' }}
         >
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, var(--error), var(--primary))' }} />
-          <div className="guard-icon" style={{ fontSize: '4.5rem', marginBottom: '1.5rem' }}>🛡️</div>
+          <div className="guard-icon" style={{ fontSize: '2.6rem', marginBottom: '1.5rem' }}>NET</div>
           <h1 className="guard-title" style={{ fontSize: '2rem', marginBottom: '1rem' }}>Wrong Network Detected</h1>
-          
+
           <p className="guard-desc" style={{ fontSize: '1.05rem', color: '#fff', marginBottom: '1.5rem', fontWeight: 700 }}>
             This app only runs on Base Sepolia testnet.
           </p>
 
           <div className="guard-warning" style={{ background: 'rgba(244, 63, 94, 0.1)', borderLeft: '4px solid var(--error)', color: 'var(--error)', padding: '1.5rem', textAlign: 'left', borderRadius: '12px', marginBottom: '2rem' }}>
-            <div style={{ fontWeight: 900, marginBottom: '0.5rem' }}>⚠️ Network mismatch</div>
+            <div style={{ fontWeight: 900, marginBottom: '0.5rem' }}>Warning: Network mismatch</div>
             Your wallet is currently connected to another chain.
             <br />
             Switch to <strong>Base Sepolia (Chain ID 84532)</strong> to continue.
@@ -417,7 +485,7 @@ function App() {
             In the wallet popup, network must show Base Sepolia before confirming.
           </p>
 
-          <button 
+          <button
             className="btn btn-primary btn-lg"
             style={{ width: '100%', padding: '1.4rem', fontSize: '1.1rem', borderRadius: '16px' }}
             onClick={() => {
@@ -426,7 +494,7 @@ function App() {
           >
             Switch to Base Sepolia
           </button>
-          
+
           <p className="guard-footer" style={{ marginTop: '2rem', fontWeight: 700, opacity: 0.6 }}>
             Supported network: <strong>Base Sepolia</strong>
           </p>
@@ -442,6 +510,7 @@ function App() {
         <div className="mesh-circle c-2" />
         <div className="mesh-circle c-3" />
       </div>
+
       <Header
         onConnectClick={() => setShowWalletModal(true)}
         ethBalance={ethBalance?.value}
@@ -453,10 +522,8 @@ function App() {
       <main className="container">
         <div className="main-grid">
           <section className="main-col">
-            <Hero
-              ethBalance={ethBalance?.value}
-            />
-            
+            <Hero ethBalance={ethBalance?.value} />
+
             <div className="tasks-controls">
               <div className="tasks-controls-left">
                 <h3 className="tasks-heading">
@@ -568,7 +635,8 @@ function App() {
               setStakeAmount={setStakeAmount}
               onSubmit={handleCreateTask}
               isConnected={isConnected}
-              isTxPending={isWritePending}
+              isTxPending={isTxPendingForUi}
+              isAwaitingWalletApproval={isAwaitingWalletApproval}
               isConfirming={isConfirming}
             />
 
@@ -610,6 +678,21 @@ function App() {
                   <span className="network-row-label">Status</span>
                   <span className="network-row-val">Live</span>
                 </div>
+                {latestSubmittedHash && (
+                  <div className="network-row" style={{ alignItems: 'center' }}>
+                    <span className="network-row-label">Latest TX</span>
+                    <a
+                      href={`https://sepolia.basescan.org/tx/${latestSubmittedHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="network-row-val"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--accent)' }}
+                    >
+                      {latestSubmittedHash.slice(0, 10)}...
+                      <ExternalLink size={13} />
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </aside>
@@ -623,7 +706,7 @@ function App() {
               Contract
             </a>
           </div>
-          <p className="footer-copy">Stake-To-Done Protocol &copy; 2026 • Built for Base</p>
+          <p className="footer-copy">Stake-To-Done Protocol (c) 2026 - Built for Base</p>
         </div>
       </footer>
     </div>

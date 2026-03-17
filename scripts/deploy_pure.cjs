@@ -25,7 +25,7 @@ async function main() {
         STAKE_TO_DONE_ADDRESS: address,
         TREASURY_ADDRESS: treasury,
         NETWORK: "Base Sepolia",
-        VERSION: "v2.3.10-base-sepolia"
+        VERSION: "v2.3.11-base-sepolia"
     };
     fs.writeFileSync(addressFile, JSON.stringify(addresses, null, 2));
 
