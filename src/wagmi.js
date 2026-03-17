@@ -1,13 +1,13 @@
 import { http, createConfig, fallback } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
-import { coinbaseWallet, metaMask } from 'wagmi/connectors'
+import { coinbaseWallet, injected } from 'wagmi/connectors'
 
 export const config = createConfig({
-  // Show only connectors explicitly configured below.
-  multiInjectedProviderDiscovery: false,
+  // Detect all EIP-6963 injected wallets (MetaMask, Rabby, OKX, etc.).
+  multiInjectedProviderDiscovery: true,
   chains: [baseSepolia],
   connectors: [
-    metaMask(),
+    injected(),
     coinbaseWallet({ appName: 'Stake-To-Done' }),
   ],
   transports: {

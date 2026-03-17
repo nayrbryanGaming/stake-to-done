@@ -7,11 +7,24 @@ import { Zap, Bell, X, ChevronRight, Wallet } from 'lucide-react'
 import { STAKE_TO_DONE_ADDRESS, VERSION } from '../constants'
 
 const WALLET_DESCS = {
+  Injected: 'Browser-injected wallet (auto-detected)',
   MetaMask: 'Browser extension & mobile wallet',
   'Coinbase Wallet': 'Coinbase self-custody wallet',
 }
 
-const ALLOWED_CONNECTOR_NAMES = new Set(['MetaMask', 'Coinbase Wallet'])
+const getVisibleConnectors = (connectors) => {
+  const seen = new Set()
+  const result = []
+
+  for (const connector of connectors) {
+    const key = `${connector.id}:${connector.name}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(connector)
+  }
+
+  return result
+}
 
 /* ─── Header ────────────────────────────── */
 export const Header = ({ onConnectClick, ethBalance }) => {
@@ -103,7 +116,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
   const { switchChainAsync } = useSwitchChain()
   const { isConnected } = useAccount()
 
-  const visibleConnectors = connectors.filter((connector) => ALLOWED_CONNECTOR_NAMES.has(connector.name))
+  const visibleConnectors = getVisibleConnectors(connectors)
 
   useEffect(() => {
     if (isConnected && isOpen) onClose()
@@ -149,7 +162,7 @@ export const WalletModal = ({ isOpen, onClose }) => {
           <div className="wallet-options">
             {visibleConnectors.length === 0 && (
               <div className="wallet-error" style={{ marginTop: 0 }}>
-                No supported wallet detected. Install MetaMask or Coinbase Wallet extension.
+                No injected wallet detected. Install a wallet extension and refresh.
               </div>
             )}
             {visibleConnectors.map(connector => (
