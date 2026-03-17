@@ -495,22 +495,27 @@ function App() {
               </Motion.div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {displayTasks.map((task, index) => (
-                  <Motion.div
-                    key={task.id.toString()}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.04 }}
-                  >
-                    <TaskItem
-                      id={task.id}
-                      initialTask={task}
-                      searchQuery={searchQuery}
-                      notify={showToast}
-                      refetchAll={refetchAll}
-                    />
-                  </Motion.div>
-                ))}
+                {displayTasks.map((task, index) => {
+                  const taskId = task?.id ?? task?.[0]
+                  if (taskId == null) return null
+
+                  return (
+                    <Motion.div
+                      key={taskId.toString()}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                    >
+                      <TaskItem
+                        id={taskId}
+                        initialTask={task}
+                        searchQuery={searchQuery}
+                        notify={showToast}
+                        refetchAll={refetchAll}
+                      />
+                    </Motion.div>
+                  )
+                })}
               </div>
             )}
           </section>
