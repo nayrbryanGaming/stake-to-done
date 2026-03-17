@@ -26,10 +26,24 @@ const TX_ACTION = {
   CREATE_TASK: 'create_task',
 }
 
+const normalizeChainId = (rawChainId) => {
+  if (rawChainId == null) return null
+  if (typeof rawChainId === 'number' && Number.isFinite(rawChainId)) return rawChainId
+  if (typeof rawChainId !== 'string') return null
+
+  if (rawChainId.startsWith('0x')) {
+    const parsed = Number.parseInt(rawChainId, 16)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+
+  const parsed = Number.parseInt(rawChainId, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 function App() {
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, connector } = useAccount()
   const chainId = useChainId()
-  const { switchChain } = useSwitchChain()
+  const { switchChain, switchChainAsync } = useSwitchChain()
   const { writeContract, data: hash, isPending: isWritePending, error: writeError } = useWriteContract()
   const { isLoading: isConfirming, isSuccess: isConfirmed, error: txError } = useWaitForTransactionReceipt({ hash })
 
@@ -54,13 +68,48 @@ function App() {
     toastTimer.current = setTimeout(() => setToast({ show: false, msg: '' }), 4500)
   }, [])
 
-  const handleSwitchToBaseSepolia = useCallback(() => {
+  const handleSwitchToBaseSepolia = useCallback(async () => {
     try {
-      switchChain({ chainId: baseSepolia.id })
+      if (typeof switchChainAsync === 'function') {
+        await switchChainAsync({ chainId: baseSepolia.id })
+      } else {
+        switchChain?.({ chainId: baseSepolia.id })
+      }
+      return true
     } catch {
       showToast('Failed to switch network automatically. Switch manually in wallet settings.')
+      return false
     }
-  }, [showToast, switchChain])
+  }, [showToast, switchChain, switchChainAsync])
+
+  const getProviderChainId = useCallback(async () => {
+    try {
+      const provider = await connector?.getProvider?.()
+      if (!provider?.request) return null
+      const rawChainId = await provider.request({ method: 'eth_chainId' })
+      return normalizeChainId(rawChainId)
+    } catch {
+      return null
+    }
+  }, [connector])
+
+  const ensureBaseSepoliaNetwork = useCallback(async () => {
+    const providerChainId = await getProviderChainId()
+    const detectedChainId = providerChainId ?? chainId
+
+    if (detectedChainId === baseSepolia.id) return true
+
+    const switched = await handleSwitchToBaseSepolia()
+    if (!switched) return false
+
+    const afterSwitchChainId = await getProviderChainId()
+    if (afterSwitchChainId != null && afterSwitchChainId !== baseSepolia.id) {
+      showToast(`Wallet chain is still ${afterSwitchChainId}. Approve Base Sepolia switch in wallet.`)
+      return false
+    }
+
+    return true
+  }, [chainId, getProviderChainId, handleSwitchToBaseSepolia, showToast])
 
   useEffect(() => {
     return () => {
@@ -109,12 +158,12 @@ function App() {
     refetchEth()
   }, [refetchIds, refetchTasks, refetchEth])
 
-  const handleCreateTask = (e) => {
+  const handleCreateTask = async (e) => {
     e.preventDefault()
 
     if (!isConnected || !address) return showToast('Connect wallet first')
-    if (isWrongChain) {
-      handleSwitchToBaseSepolia()
+    const onTargetNetwork = await ensureBaseSepoliaNetwork()
+    if (!onTargetNetwork) {
       return showToast('Wallet must be on Base Sepolia (84532).')
     }
 
@@ -218,7 +267,9 @@ function App() {
           <button 
             className="btn btn-primary btn-lg"
             style={{ width: '100%', padding: '1.4rem', fontSize: '1.1rem', borderRadius: '16px' }}
-            onClick={handleSwitchToBaseSepolia}
+            onClick={() => {
+              void handleSwitchToBaseSepolia()
+            }}
           >
             Switch to Base Sepolia
           </button>
